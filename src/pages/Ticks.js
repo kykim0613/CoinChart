@@ -1,18 +1,30 @@
 import { useEffect, useState } from "react"
 import { Bar, Line } from "react-chartjs-2"
 import styled from "styled-components"
-import { binanceAPI, binanceCandlesAPI, binanceListAPI, rateAPI, upbitCandlesAPI, upbitListAPI, upbitTicksAPI } from "../api"
+import { binanceCandlesAPI, upbitCandlesAPI } from "../api"
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import { Market } from "../atom";
 Chart.register(zoomPlugin)
+
+const Market = styled.h1`
+    width: 100px;
+    height: 50px;
+    margin: 0 auto;
+    text-align:center;
+`
+const Date = styled.div`
+    widht:100px;
+    height:20px;
+    margin: 0 auto;
+    text-align:center;
+`
 
 const VolumeContainer = styled.div`
     width: 100%;
     color: white;
 `
 
-const Ticks = ({selected}) => {
+const Ticks = ({selected, selectedCoin, timeScope, selectedTime}) => {
     const [upbitCoins, setUpbitCoins] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
     const [time, setTime] = useState([])
@@ -24,17 +36,12 @@ const Ticks = ({selected}) => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const dataList1 = await upbitListAPI()
-                const dateStart = dataList1[11].s
-                const dateEnd = dataList1[11].e
+                const dateEnd = selectedCoin.e
+                const data1 = await upbitCandlesAPI(selected, dateEnd-selectedTime, dateEnd)
+                setUpbitCoins(data1.slice(0, timeScope))
 
-                const dataList2 = await binanceListAPI()
-
-                const data1 = await upbitCandlesAPI(selected, dateEnd-10000, dateEnd)
-                setUpbitCoins(data1.slice(0, 60))
-
-                const data2 = await binanceCandlesAPI(selected, dateEnd-10000, dateEnd)
-                setBinanceCoins(data2.slice(0, 60))
+                const data2 = await binanceCandlesAPI(selected, dateEnd-selectedTime, dateEnd)
+                setBinanceCoins(data2.slice(0, timeScope))
 
             } catch (error) {
                 console.log(error)
@@ -43,23 +50,25 @@ const Ticks = ({selected}) => {
 
         fetchData()
 
-    }, [selected])
+    }, [selected, selectedCoin, timeScope])
 
     useEffect(() => {
         const upbitArray = upbitCoins.map((coin) => coin.closePrice)
         const binanceArray = binanceCoins.map((coin) => coin.closePrice)
-        const time = upbitCoins.map((kst) => kst.dateTimeKst)
+        const time = upbitCoins.map((kst) => kst.dateTimeKst.toString())
         const upVolume = upbitCoins.map((vol) => vol.candleAccTradeVolume)
         const bnbVolume = binanceCoins.map((vol) => vol.candleAccTradeVolume)
         setUpBitPriceArray(upbitArray)
         setBinancePriceArray(binanceArray)
-        setTime(time.sort((a, b) => a-b))
+        setTime(time)
         setUpbitVolume(upVolume)
         setBinanceVolume(bnbVolume)
     }, [upbitCoins, binanceCoins])
 
+    const stringTime = time.map((date) => date.slice(-4,-2)+':'+date.slice(-2))
+
     const lineChart = {
-        labels: time,
+        labels: stringTime,
         datasets: [
             {
                 label: `Binance`,
@@ -92,7 +101,8 @@ const Ticks = ({selected}) => {
                 }
             },
             x: {
-                min: binancePriceArray[binancePriceArray.length]
+                min: binancePriceArray[binancePriceArray.length],
+                max: 300
             }
         },
         animation: {
@@ -126,7 +136,7 @@ const Ticks = ({selected}) => {
     }
 
     const barChart = {
-        labels: time,
+        labels: stringTime,
         datasets: [
             {
                 label: `Binance`,
@@ -185,23 +195,20 @@ const Ticks = ({selected}) => {
         }
     }
 
-    const handleRateSubmit = (e) => {
-        e.preventDefault()
-    }
+    const date = `${selectedCoin.e}`
+    const dateString = date.slice(4, -4)
+    const dateSplice = [...dateString.slice(0, 2), '/', ...dateString.slice(2)]
 
-    const handleRateInput = (e) => {
-        setRate(e.target.value)
-    }
     return (
         <>
+        <Date>
+        {dateSplice}
+        </Date>
         <Market>
         {selected}
         </Market>
         <VolumeContainer>
             <Line data={lineChart} options={LineOptions} />
-            <form onSubmit={handleRateSubmit}>
-                <input type="number" placeholder="환율" onChange={handleRateInput} defaultValue={1300} />
-            </form>
             <Bar data={barChart} options={barOptions} />
         </VolumeContainer>
         </>

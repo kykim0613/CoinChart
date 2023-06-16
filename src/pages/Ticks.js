@@ -1,71 +1,75 @@
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Bar, Line } from "react-chartjs-2"
 import styled from "styled-components"
-import { binanceCandlesAPI, upbitCandlesAPI } from "../api"
+import { ListAPI, binanceCandlesAPI, upbitCandlesAPI } from "../api"
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin)
 
-const Market = styled.h1`
-    width: 100px;
-    height: 50px;
-    margin: 0 auto;
-    text-align:center;
-`
-const Date = styled.div`
-    widht:100px;
-    height:20px;
-    margin: 0 auto;
-    text-align:center;
-`
-
 const VolumeContainer = styled.div`
-    width: 100%;
+    width: 100vh;
     color: white;
 `
 
-const Ticks = ({selected, selectedCoin, timeScope, selectedTime}) => {
+const Ticks = ({selected, timeScope, selectedStart, selectedEnd}) => {
     const [upbitCoins, setUpbitCoins] = useState([])
+    const [binanceCoins, setBinanceCoins] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
     const [time, setTime] = useState([])
     const [upbitVolume, setUpbitVolume] = useState([])
     const [binanceVolume, setBinanceVolume] = useState([])
-    const [binanceCoins, setBinanceCoins] = useState([])
     const [binancePriceArray, setBinancePriceArray] = useState([])
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const dateEnd = selectedCoin.e
-                const data1 = await upbitCandlesAPI(selected, dateEnd-selectedTime, dateEnd)
-                setUpbitCoins(data1.slice(0, timeScope))
-
-                const data2 = await binanceCandlesAPI(selected, dateEnd-selectedTime, dateEnd)
-                setBinanceCoins(data2.slice(0, timeScope))
-
+                const data = await upbitCandlesAPI(selected, selectedStart, selectedEnd)
+                setUpbitCoins(data.slice(0, timeScope))
             } catch (error) {
                 console.log(error)
             }
         }
 
         fetchData()
-
-    }, [selected, selectedCoin, timeScope])
+    }, [selectedStart, selectedEnd, selected, timeScope])
 
     useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const data = await binanceCandlesAPI(selected, selectedStart, selectedEnd)
+                setBinanceCoins(data.slice(0, timeScope))
+            } catch (error) {
+                console.log(error)
+            }
+        }
+
+        fetchData()
+    },[selectedStart, selectedEnd, selected, timeScope])
+
+    useEffect(() => {
+        // let timeArray = []
         const upbitArray = upbitCoins.map((coin) => coin.closePrice)
         const binanceArray = binanceCoins.map((coin) => coin.closePrice)
-        const time = upbitCoins.map((kst) => kst.dateTimeKst.toString())
+        const upbitTime = upbitCoins.map((utc) => utc.dateTimeUtc.toString())
+        const binanceTime = binanceCoins.map((utc) => utc.closeTime.toString())
         const upVolume = upbitCoins.map((vol) => vol.candleAccTradeVolume)
         const bnbVolume = binanceCoins.map((vol) => vol.candleAccTradeVolume)
+        // for (let i = 0; i < binanceTime.length; i++) {
+        //     for (let j = 0; j < upbitTime.length; j++) {
+        //         if (binanceTime[i] !== upbitTime[j]) {
+        //             timeArray = [...upbitTime, binanceTime[i]]
+        //         }
+        //     }
+        // }
         setUpBitPriceArray(upbitArray)
         setBinancePriceArray(binanceArray)
-        setTime(time)
+        setTime(upbitTime.sort((a, b) => a - b))
         setUpbitVolume(upVolume)
         setBinanceVolume(bnbVolume)
+        console.log(upbitTime)
     }, [upbitCoins, binanceCoins])
 
-    const stringTime = time.map((date) => date.slice(-4,-2)+':'+date.slice(-2))
+    const stringTime = time.map((date) => date.slice(-4, -2) + ':' + date.slice(-2))
 
     const lineChart = {
         labels: stringTime,
@@ -93,17 +97,13 @@ const Ticks = ({selected, selectedCoin, timeScope, selectedTime}) => {
         scales: {
             y: {
                 type: 'linear',
-                min: (binancePriceArray[binancePriceArray.length]+upbitPriceArray[upbitPriceArray.length])/2 - 500000,
-                max: (binancePriceArray[binancePriceArray.length]+upbitPriceArray[upbitPriceArray.length])/2 + 500000,
+                min: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 0.8,
+                max: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 1.2,
                 position: 'left',
                 grid: {
                     display: false
                 }
             },
-            x: {
-                min: binancePriceArray[binancePriceArray.length],
-                max: 300
-            }
         },
         animation: {
             duration: 0
@@ -120,9 +120,6 @@ const Ticks = ({selected, selectedCoin, timeScope, selectedTime}) => {
                     mode: 'x'
                 },
                 zoom: {
-                    darg: {
-                        enabled: true,
-                    },
                     wheel: {
                         enabled: true,
                     },
@@ -180,9 +177,6 @@ const Ticks = ({selected, selectedCoin, timeScope, selectedTime}) => {
                     mode: 'x'
                 },
                 zoom: {
-                    darg: {
-                        enabled: true,
-                    },
                     wheel: {
                         enabled: true,
                     },
@@ -195,22 +189,12 @@ const Ticks = ({selected, selectedCoin, timeScope, selectedTime}) => {
         }
     }
 
-    const date = `${selectedCoin.e}`
-    const dateString = date.slice(4, -4)
-    const dateSplice = [...dateString.slice(0, 2), '/', ...dateString.slice(2)]
-
     return (
         <>
-        <Date>
-        {dateSplice}
-        </Date>
-        <Market>
-        {selected}
-        </Market>
-        <VolumeContainer>
-            <Line data={lineChart} options={LineOptions} />
-            <Bar data={barChart} options={barOptions} />
-        </VolumeContainer>
+            <VolumeContainer>
+                <Line data={lineChart} options={LineOptions} />
+                <Bar data={barChart} options={barOptions} />
+            </VolumeContainer>
         </>
     )
 }

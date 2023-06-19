@@ -73,7 +73,6 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) =
         const bnbVolume = binanceCoins.map((vol) => vol.candleAccTradeVolume)
 
         const timeList = Array.from(new Set([...upbitTime, ...binanceTime]))
-        console.log(timeList)
         setUpBitPriceArray(upbitArray)
         setBinancePriceArray(binanceArray)
         setTime(timeList.sort((a, b) => a - b))

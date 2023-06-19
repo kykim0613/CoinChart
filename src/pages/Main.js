@@ -5,6 +5,11 @@ import styled from "styled-components";
 import Ticks from "./Ticks";
 import { ListAPI, binanceCandlesAPI, binanceListAPI, upbitCandlesAPI, upbitListAPI } from "../api";
 
+const PageBtn = styled.button`
+    width: 50px;
+    height: 25px;
+    backgroundColor: none
+`
 const DateInput = styled.input`
     width:100px;
     height:20px;
@@ -49,6 +54,7 @@ const Main = () => {
     const [selectedEnd, setSelectedEnd] = useState(0)
     const [startDateInput, setStartDateInput] = useState(``)
     const [endDateInput, setEndDateInput] = useState(``)
+    const [currentPage, setCurrentPage] = useState(1)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -76,6 +82,10 @@ const Main = () => {
 
     }, [])
 
+    useEffect(() => {
+
+    }, [currentPage])
+
     const transDateString = (selectedTime) => {
         const startDate = `${coinList[selectedIndex].e - selectedTime}`
         const startDateString = startDate.slice(0, -4)
@@ -85,8 +95,6 @@ const Main = () => {
         setSelectedEnd(coinList[selectedIndex].e)
         setStartDateInput(`${startDateString.slice(0, 4)}-${startDateString.slice(4, 6)}-${startDateString.slice(6)}`)
         setEndDateInput(`${endDateString.slice(0, 4)}-${endDateString.slice(4, 6)}-${endDateString.slice(6)}`)
-        console.log(`${endDateString.slice(0, 4)}-${endDateString.slice(4, 6)}-${endDateString.slice(6)}`)
-    
     }
 
     const handleMinBtn = () => {
@@ -96,10 +104,10 @@ const Main = () => {
         setWeekBtn(false)
         setMonthBtn(false)
         setTimeScope(60)
-        setSelectedTime(100)
+        setSelectedTime(100 * currentPage)
         transDateString(selectedTime)
+        setCurrentPage(1)
     }
-
     const handleDateBtn = () => {
         const selectedTime = 10000
         setMinBtn(false)
@@ -109,6 +117,7 @@ const Main = () => {
         setTimeScope(1440)
         setSelectedTime(10000)
         transDateString(selectedTime)
+        setCurrentPage(1)
     }
     const handleWeekBtn = () => {
         const selectedTime = 70000
@@ -119,6 +128,7 @@ const Main = () => {
         setTimeScope(10080)
         setSelectedTime(70000)
         transDateString(selectedTime)
+        setCurrentPage(1)
     }
     const handleMonthBtn = () => {
         const selectedTime = 1000000
@@ -129,6 +139,7 @@ const Main = () => {
         setTimeScope(40320)
         setSelectedTime(1000000)
         transDateString(selectedTime)
+        setCurrentPage(1)
     }
 
     const tickComponent = (
@@ -137,6 +148,7 @@ const Main = () => {
             timeScope={timeScope}
             selectedStart={selectedStart}
             selectedEnd={selectedEnd}
+            currentPage={currentPage}
         />
     );
     const handleSelectChange = (e) => {
@@ -144,15 +156,39 @@ const Main = () => {
         setselectedIndex(e.target.selectedIndex)
         setSelectedStart(coinList[e.target.selectedIndex].e - timeScope)
         setSelectedEnd(coinList[e.target.selectedIndex].e)
+        setCurrentPage(1)
     }
 
     const handleSelectStart = (e) => {
         const value = e.target.value
-        setStartDateInput(value)
+        const start = value.slice(0,4)+value.slice(5,7)+value.slice(8,10)+'0000'
+        if(Number(start) < Number(selectedEnd)) {
+            setSelectedStart(value.slice(0,4)+value.slice(5,7)+value.slice(8,10)+`0000`)
+            setStartDateInput(value)
+        } else {
+            alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
+            return
+        }
     }
-    const handleselectEnd = (e) => {
+    const handleSelectEnd = (e) => {
         const value = e.target.value
-        setEndDateInput(value)
+        const end = value.slice(0,4)+value.slice(5,7)+value.slice(8,10)+'0000'
+        if(Number(selectedStart) < Number(end)) {
+            setSelectedEnd(value.slice(0,4)+value.slice(5,7)+value.slice(8,10)+`0000`)
+            setEndDateInput(value)
+        } else {
+            alert(`종료날짜는 시작날짜보다 작을 수 없습니다.`)
+            return
+        }
+    }
+
+    const handleMinusBtn = (e) => {
+            setCurrentPage(currentPage + 1)
+    }
+    const handlePlusBtn = (e) => {
+        if (currentPage > 1) {
+            setCurrentPage(currentPage - 1)
+        }
     }
 
     return (
@@ -171,9 +207,11 @@ const Main = () => {
             <Market>
                 {selected}
             </Market>
-            <DateInput defaultValue={startDateInput} onChange={handleSelectStart} type="date" readOnly />
+            <PageBtn onClick={handleMinusBtn}>-</PageBtn>
+            <DateInput defaultValue={startDateInput} onChange={handleSelectStart} type="date" />
             -
-            <DateInput defaultValue={endDateInput} onChange={handleselectEnd} type="date" readOnly />
+            <DateInput defaultValue={endDateInput} onChange={handleSelectEnd} type="date" />
+            <PageBtn onClick={handlePlusBtn}>+</PageBtn>
             {minBtn && tickComponent}
             {dateBtn && tickComponent}
             {weekBtn && tickComponent}

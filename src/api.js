@@ -1,3 +1,5 @@
+import { ip } from "./data.config"
+
 const timeStamp = Date.now()
 const date = new Date(timeStamp)
 const year = date.getFullYear()
@@ -54,7 +56,6 @@ export const binanceListAPI = async () => {
 export const upbitCandlesAPI = async (market, start, end) => {
     const response = await fetch(`http://${ip}/api/upbit/candles?market=KRW-${market}&start=${start}&end=${end}`)
     const data = await response.json()
-    console.log(data)
 
     return data
 }
@@ -75,8 +76,10 @@ export const ListAPI = async () => {
     const binanceSymbol = data2.map((title) => title.t.slice(0, title.t.length - 4))
 
     let coinListArray = []
-    for (let i = 0; i < upbitSymbol.length; i++) {
-        for (let j = 0; j < binanceSymbol.length; j++) {
+    const upbitLength = upbitSymbol.length
+    const binanceLength = binanceSymbol.length
+    for (let i = 0; i < upbitLength; i++) {
+        for (let j = 0; j < binanceLength; j++) {
             if (upbitSymbol[i] === binanceSymbol[j]) {
                 coinListArray = [...coinListArray, dataList[i]]
             }

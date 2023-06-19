@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { Bar, Line } from "react-chartjs-2"
 import styled from "styled-components"
-import { ListAPI, binanceCandlesAPI, upbitCandlesAPI } from "../api"
+import { binanceCandlesAPI, upbitCandlesAPI } from "../api"
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin)
@@ -11,7 +11,7 @@ const VolumeContainer = styled.div`
     color: white;
 `
 
-const Ticks = ({selected, timeScope, selectedStart, selectedEnd}) => {
+const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) => {
     const [upbitCoins, setUpbitCoins] = useState([])
     const [binanceCoins, setBinanceCoins] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
@@ -46,6 +46,23 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd}) => {
         fetchData()
     },[selectedStart, selectedEnd, selected, timeScope])
 
+    // useEffect(() => {
+    //     const upbitMarket = upbitCoins.map((market) => market.market)
+    //     const upbitOpenPrice = upbitCoins.map((open) => open.openingPrice)
+    //     const upbitClosePrice = upbitCoins.map((market) => market.closePrice)
+    //     const upbitHighPrice = upbitCoins.map((high) => high.highPrice)
+    //     const upbitLowPrice = upbitCoins.map((low) => low.lowPrice)
+    //     const dateCandle = {
+    //         market: upbitMarket[0],
+    //         openingPrice: upbitOpenPrice[0],
+    //         closePrice: upbitClosePrice[upbitClosePrice.length-1],
+    //         highPrice: Math.max(...upbitHighPrice),
+    //         lowPrice: Math.min(...upbitLowPrice)
+    //     }
+    //     console.log(dateCandle)
+    // }, [upbitCoins, binanceCoins])
+
+
     useEffect(() => {
         // let timeArray = []
         const upbitArray = upbitCoins.map((coin) => coin.closePrice)
@@ -54,19 +71,13 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd}) => {
         const binanceTime = binanceCoins.map((utc) => utc.closeTime.toString())
         const upVolume = upbitCoins.map((vol) => vol.candleAccTradeVolume)
         const bnbVolume = binanceCoins.map((vol) => vol.candleAccTradeVolume)
-        // for (let i = 0; i < binanceTime.length; i++) {
-        //     for (let j = 0; j < upbitTime.length; j++) {
-        //         if (binanceTime[i] !== upbitTime[j]) {
-        //             timeArray = [...upbitTime, binanceTime[i]]
-        //         }
-        //     }
-        // }
+
+        const timeList = [...new Set(upbitTime), ...new Set(binanceTime)]
         setUpBitPriceArray(upbitArray)
         setBinancePriceArray(binanceArray)
-        setTime(upbitTime.sort((a, b) => a - b))
+        setTime(timeList.sort((a, b) => a - b))
         setUpbitVolume(upVolume)
         setBinanceVolume(bnbVolume)
-        console.log(upbitTime)
     }, [upbitCoins, binanceCoins])
 
     const stringTime = time.map((date) => date.slice(-4, -2) + ':' + date.slice(-2))
@@ -104,13 +115,15 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd}) => {
                     display: false
                 }
             },
+            x: {
+                max: 300,
+            }
         },
         animation: {
             duration: 0
         },
-        tooltips: {
-            enabled: true,
-            intersect: true,
+        interaction: {
+            intersect: false,
             mode: 'index'
         },
         plugins: {
@@ -128,7 +141,11 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd}) => {
                     },
                     mode: 'x',
                 }
-            }
+            },
+            tooltip: {
+                enabled: true,
+                backgroundColor: `#333`
+            },
         }
     }
 
@@ -161,13 +178,15 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd}) => {
                     display: false
                 }
             },
+            x: {
+                max: 300,
+            }
         },
         animation: {
             duration: 0
         },
-        tooltips: {
-            enabled: true,
-            intersect: true,
+        interaction: {
+            intersect: false,
             mode: 'index'
         },
         plugins: {
@@ -184,8 +203,12 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd}) => {
                         enabled: true,
                     },
                     mode: 'x',
-                }
-            }
+                },
+            },
+            tooltip: {
+                enabled: true,
+                backgroundColor: `#333`
+            },
         }
     }
 

@@ -8,10 +8,12 @@ Chart.register(zoomPlugin)
 
 const VolumeContainer = styled.div`
     width: 100vh;
-    color: white;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%)
 `
 
-const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) => {
+const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, endTime, timeCheck }) => {
     const [upbitCoins, setUpbitCoins] = useState([])
     const [binanceCoins, setBinanceCoins] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
@@ -23,28 +25,28 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) =
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await upbitCandlesAPI(selected, selectedStart, selectedEnd)
-                setUpbitCoins(data.slice(0, timeScope))
+                const data = await upbitCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
+                setUpbitCoins(data)
             } catch (error) {
                 console.log(error)
             }
         }
 
         fetchData()
-    }, [selectedStart, selectedEnd, selected, timeScope])
+    }, [selectedStart, selectedEnd, selected, timeScope, startTime, endTime])
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await binanceCandlesAPI(selected, selectedStart, selectedEnd)
-                setBinanceCoins(data.slice(0, timeScope))
+                const data = await binanceCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
+                setBinanceCoins(data)
             } catch (error) {
                 console.log(error)
             }
         }
 
         fetchData()
-    },[selectedStart, selectedEnd, selected, timeScope])
+    }, [selectedStart, selectedEnd, selected, timeScope, startTime, endTime])
 
     // useEffect(() => {
     //     const upbitMarket = upbitCoins.map((market) => market.market)
@@ -63,27 +65,38 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) =
     // }, [upbitCoins, binanceCoins])
 
 
+    const grahpX = (timeList) => {
+        let x = []
+        for (let i = 0; i < timeList.length; i++) {
+            const hour = timeList[i] / 100 % 100 | 0
+            const min = timeList[i] % 100
+            x.push(`${hour < 10 ? `0` + hour : hour}:${min < 10 ? `0` + min : min}`)
+        }
+        return x
+    }
+
     useEffect(() => {
         // let timeArray = []
         const upbitArray = upbitCoins.map((coin) => coin.closePrice)
         const binanceArray = binanceCoins.map((coin) => coin.closePrice)
-        const upbitTime = upbitCoins.map((utc) => utc.dateTimeUtc.toString())
-        const binanceTime = binanceCoins.map((utc) => utc.closeTime.toString())
+        const upbitTime = upbitCoins.map((utc) => utc.dateTimeUtc)
+        const binanceTime = binanceCoins.map((utc) => utc.closeTime)
         const upVolume = upbitCoins.map((vol) => vol.candleAccTradeVolume)
         const bnbVolume = binanceCoins.map((vol) => vol.candleAccTradeVolume)
 
+
         const timeList = Array.from(new Set([...upbitTime, ...binanceTime]))
+
         setUpBitPriceArray(upbitArray)
         setBinancePriceArray(binanceArray)
-        setTime(timeList.sort((a, b) => a - b))
+        setTime(grahpX(timeList.sort((a, b) => a - b)))
         setUpbitVolume(upVolume)
         setBinanceVolume(bnbVolume)
     }, [upbitCoins, binanceCoins])
 
-    const stringTime = time.map((date) => date.slice(-4, -2) + ':' + date.slice(-2))
 
     const lineChart = {
-        labels: stringTime,
+        labels: time,
         datasets: [
             {
                 label: `Binance`,
@@ -107,16 +120,14 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) =
     const LineOptions = {
         scales: {
             y: {
-                type: 'linear',
                 min: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 0.8,
                 max: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 1.2,
                 position: 'left',
+            },
+            x: {
                 grid: {
                     display: false
                 }
-            },
-            x: {
-                max: 300,
             }
         },
         animation: {
@@ -150,7 +161,7 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) =
     }
 
     const barChart = {
-        labels: stringTime,
+        labels: time,
         datasets: [
             {
                 label: `Binance`,
@@ -172,15 +183,17 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) =
     const barOptions = {
         scales: {
             y: {
-                type: 'linear',
-                position: 'left',
+                position: 'right',
                 grid: {
                     display: false
                 }
             },
             x: {
-                max: 300,
-            }
+                display: false,
+                grid: {
+                    display: false
+                }
+            },
         },
         animation: {
             duration: 0
@@ -209,14 +222,14 @@ const Ticks = ({selected, timeScope, selectedStart, selectedEnd, currentPage}) =
                 enabled: true,
                 backgroundColor: `#333`
             },
-        }
+        },
     }
 
     return (
         <>
             <VolumeContainer>
                 <Line data={lineChart} options={LineOptions} />
-                <Bar data={barChart} options={barOptions} />
+                <Bar data={barChart} options={barOptions} onChange={console.log('run time:' + (Date.now() - timeCheck))} />
             </VolumeContainer>
         </>
     )

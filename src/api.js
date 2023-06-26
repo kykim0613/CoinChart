@@ -53,15 +53,16 @@ export const binanceListAPI = async () => {
     return data
 }
 
-export const upbitCandlesAPI = async (market, start, end) => {
-    const response = await fetch(`http://${ip}/api/upbit/candles?market=KRW-${market}&start=${start}&end=${end}`)
+export const upbitCandlesAPI = async (market, start, end, startTime, endTime) => {
+    const response = await fetch(`http://${ip}/api/upbit/candles?market=KRW-${market}&start=${start}${startTime}&end=${end}${endTime}`)
     const data = await response.json()
+
 
     return data
 }
 
-export const binanceCandlesAPI = async (market, start, end) => {
-    const response = await fetch(`http://${ip}/api/binance/candles?symbol=${market}USDT&start=${start}&end=${end}`)
+export const binanceCandlesAPI = async (market, start, end, startTime, endTime) => {
+    const response = await fetch(`http://${ip}/api/binance/candles?symbol=${market}USDT&start=${start}${startTime}&end=${end}${endTime}`)
     const data = await response.json()
 
     return data

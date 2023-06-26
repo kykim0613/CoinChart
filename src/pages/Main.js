@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import Ticks from "./Ticks";
 import { ListAPI, binanceCandlesAPI, binanceListAPI, upbitCandlesAPI, upbitListAPI } from "../api";
+import TimePicker from "react-time-picker";
 
 const PageBtn = styled.button`
     width: 50px;
@@ -46,7 +47,6 @@ const Main = () => {
     const [weekBtn, setWeekBtn] = useState(false)
     const [monthBtn, setMonthBtn] = useState(false)
     const [timeScope, setTimeScope] = useState(60)
-    const [selectedTime, setSelectedTime] = useState(100)
     const [selected, setSelected] = useState(``)
     const [selectedIndex, setselectedIndex] = useState(0)
     const [selectList, setSelectList] = useState([])
@@ -54,7 +54,12 @@ const Main = () => {
     const [selectedEnd, setSelectedEnd] = useState(0)
     const [startDateInput, setStartDateInput] = useState(``)
     const [endDateInput, setEndDateInput] = useState(``)
-    const [currentPage, setCurrentPage] = useState(1)
+    const [startTime, setStartTime] = useState(``)
+    const [endTime, setEndTime] = useState(``)
+    const [startTimeInput, setStartTimeInput] = useState(``)
+    const [endTimeInput, setEndTimeInput] = useState(``)
+    const [selectedTime, setSelectedTime] = useState(100)
+    let timeCheck = Date.now()
 
     useEffect(() => {
         const fetchData = async () => {
@@ -64,37 +69,62 @@ const Main = () => {
                 setCoinList(data1)
                 setSelectList(tickerListArray)
                 setSelected(tickerListArray[selectedIndex])
-                setSelectedStart(data1[selectedIndex].e - selectedTime)
-                setSelectedEnd(data1[selectedIndex].e)
+                setSelectedStart((data1[selectedIndex].e - selectedTime) / 10000 | 0)
+                setSelectedEnd((data1[selectedIndex].e) / 10000 | 0)
 
-                const startDate = `${data1[selectedIndex].e - selectedTime}`
-                const startDateString = startDate.slice(0, -4)
-                const endDate = `${data1[selectedIndex].e}`
-                const endDateString = endDate.slice(0, -4)
-                setStartDateInput(`${startDateString.slice(0, 4)}-${startDateString.slice(4, 6)}-${startDateString.slice(6)}`)
-                setEndDateInput(`${endDateString.slice(0, 4)}-${endDateString.slice(4, 6)}-${endDateString.slice(6)}`)
+                const startDate = data1[selectedIndex].e - selectedTime
+                const endDate = data1[selectedIndex].e
+
+                inputDate(startDate, endDate)
+
             } catch (error) {
                 console.log(error)
             }
         }
-
         fetchData()
 
     }, [])
 
-    useEffect(() => {
 
-    }, [currentPage])
+    // 초기 날짜, 시간 input 데이터 함수
+    const inputDate = (startDate, endDate) => {
+        const startYear = startDate / 100000000 | 0
+        const startMonth = startDate / 1000000 % 100 | 0
+        const startDay = startDate / 10000 % 100 | 0
+        const startHour = startDate / 100 % 100 | 0
+        const startMin = startDate % 100 | 0
 
-    const transDateString = (selectedTime) => {
-        const startDate = `${coinList[selectedIndex].e - selectedTime}`
-        const startDateString = startDate.slice(0, -4)
-        const endDate = `${coinList[selectedIndex].e}`
-        const endDateString = endDate.slice(0, -4)
-        setSelectedStart(coinList[selectedIndex].e - selectedTime)
-        setSelectedEnd(coinList[selectedIndex].e)
-        setStartDateInput(`${startDateString.slice(0, 4)}-${startDateString.slice(4, 6)}-${startDateString.slice(6)}`)
-        setEndDateInput(`${endDateString.slice(0, 4)}-${endDateString.slice(4, 6)}-${endDateString.slice(6)}`)
+        const endYear = endDate / 100000000 | 0
+        const endMonth = endDate / 1000000 % 100 | 0
+        const endDay = endDate / 10000 % 100 | 0
+        const endHour = endDate / 100 % 100 | 0
+        const endMin = endDate % 100 | 0
+
+        setStartDateInput(`${startYear}-${startMonth < 10 ? '0' + startMonth : startMonth}-${startDay < 10 ? '0' + startDay : startDay}`)
+        setEndDateInput(`${endYear}-${endMonth < 10 ? '0' + endMonth : endMonth}-${endDay < 10 ? '0' + endDay : endDay}`)
+
+        setStartTimeInput(`${startHour < 10 ? '0' + startHour : startHour}:${startMin < 10 ? '0' + startMin : startMin}`)
+        setEndTimeInput(`${endHour < 10 ? '0' + endHour : endHour}:${endMin < 10 ? '0' + endMin : endMin}`)
+        setStartTime(Number(`${startHour < 10 ? '0' + startHour : startHour}${startMin < 10 ? '0' + startMin : startMin}`))
+        setEndTime(Number(`${endHour < 10 ? '0' + endHour : endHour}${endMin < 10 ? '0' + endMin : endMin}`))
+    }
+
+    const setInputDate = (selectedTime) => {
+        const start = (coinList[selectedIndex].e - selectedTime) / 10000 | 0
+        const end = coinList[selectedIndex].e / 10000 | 0
+
+        const startYear = start / 10000 | 0
+        const startMonth = start / 100 % 100 | 0
+        const startDay = start % 100
+
+        const endYear = end / 10000 | 0
+        const endMonth = end / 100 % 100 | 0
+        const endDay = end % 100
+
+        setSelectedStart(start)
+        setSelectedEnd(end)
+        setStartDateInput(`${startYear}-${startMonth < 10 ? '0' + startMonth : startMonth}-${startDay < 10 ? '0' + startDay : startDay}`)
+        setEndDateInput(`${endYear}-${endMonth < 10 ? '0' + endMonth : endMonth}-${endDay < 10 ? '0' + endDay : endDay}`)
     }
 
     const handleMinBtn = () => {
@@ -103,10 +133,9 @@ const Main = () => {
         setDateBtn(false)
         setWeekBtn(false)
         setMonthBtn(false)
+        setSelectedTime(100)
         setTimeScope(60)
-        setSelectedTime(100 * currentPage)
-        transDateString(selectedTime)
-        setCurrentPage(1)
+        setInputDate(selectedTime)
     }
     const handleDateBtn = () => {
         const selectedTime = 10000
@@ -114,10 +143,9 @@ const Main = () => {
         setDateBtn(true)
         setWeekBtn(false)
         setMonthBtn(false)
-        setTimeScope(1440)
         setSelectedTime(10000)
-        transDateString(selectedTime)
-        setCurrentPage(1)
+        setTimeScope(1440)
+        setInputDate(selectedTime)
     }
     const handleWeekBtn = () => {
         const selectedTime = 70000
@@ -125,10 +153,9 @@ const Main = () => {
         setDateBtn(false)
         setWeekBtn(true)
         setMonthBtn(false)
-        setTimeScope(10080)
         setSelectedTime(70000)
-        transDateString(selectedTime)
-        setCurrentPage(1)
+        setTimeScope(10080)
+        setInputDate(selectedTime)
     }
     const handleMonthBtn = () => {
         const selectedTime = 1000000
@@ -136,10 +163,85 @@ const Main = () => {
         setDateBtn(false)
         setWeekBtn(false)
         setMonthBtn(true)
-        setTimeScope(40320)
         setSelectedTime(1000000)
-        transDateString(selectedTime)
-        setCurrentPage(1)
+        setTimeScope(40320)
+        setInputDate(selectedTime)
+    }
+
+    // 코인 옵션
+    const handleSelectChange = (e) => {
+        setSelected(e.target.value)
+        setselectedIndex(e.target.selectedIndex)
+        setSelectedStart((coinList[e.target.selectedIndex].e - selectedTime) / 10000 | 0)
+        setSelectedEnd((coinList[e.target.selectedIndex].e) / 10000 | 0)
+
+    }
+
+    // yyyy-mm-dd input
+    const sliceDatefunc = (value) => {
+        return Number(value.slice(0, 4) + value.slice(5, 7) + value.slice(8, 10))
+    }
+
+    const handleDateStart = (e) => {
+        const value = e.target.value
+        const start = sliceDatefunc(value)
+
+        if (minBtn === true) {
+            if (Number(`${start}${startTime}`) < Number(`${selectedEnd}${endTime}`)) {
+                setSelectedStart(start)
+                setStartDateInput(value)
+            } else {
+                alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
+            }
+        }
+        if (dateBtn === true) {
+            setSelectedStart(start)
+            setStartDateInput(value)
+            setSelectedEnd(start + 1)
+            setEndDateInput(`${value.slice(0, -2)}${Number(value.slice(8, 10)) < 9 ? `0${Number(value.slice(8, 10)) + 1}` : `${Number(value.slice(8, 10)) + 1}`}`)
+        }
+    }
+    const handleDateEnd = (e) => {
+        const value = e.target.value
+        const end = sliceDatefunc(value)
+
+        if (minBtn === true) {
+            if (Number(`${selectedStart}${startTime}`) < Number(`${end}${endTime}`)) {
+                setSelectedEnd(end)
+                setEndDateInput(value)
+            } else {
+                alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
+            }
+        }
+        if (dateBtn === true) {
+            setSelectedEnd(end)
+            setEndDateInput(value)
+            setSelectedStart(end - 1)
+            setStartDateInput(`${value.slice(0, -2)}${Number(value.slice(8, 10)) < 11 ? `0${Number(value.slice(8, 10)) - 1}` : `${Number(value.slice(8, 10)) - 1}`}`)
+        }
+    }
+
+    // hh:mm input
+    const handleHourStart = (e) => {
+        const value = e.target.value
+        const start = value.slice(0, 2) + value.slice(3, 5)
+        if (Number(`${selectedStart}${start}`) < Number(`${selectedEnd}${endTime}`)) {
+            setStartTime(Number(start))
+            setStartTimeInput(value)
+        } else {
+            alert(`종료시간은 시작시간보다 작을 수 없습니다.`)
+        }
+    }
+
+    const handleHourEnd = (e) => {
+        const value = e.target.value
+        const end = value.slice(0, 2) + value.slice(3, 5)
+        if (Number(`${selectedStart}${startTime}`) < Number(`${selectedEnd}${end}`)) {
+            setEndTime(Number(end))
+            setEndTimeInput(value)
+        } else {
+            alert(`종료시간은 시작시간보다 작을 수 없습니다.`)
+        }
     }
 
     const tickComponent = (
@@ -148,48 +250,11 @@ const Main = () => {
             timeScope={timeScope}
             selectedStart={selectedStart}
             selectedEnd={selectedEnd}
-            currentPage={currentPage}
+            startTime={startTime}
+            endTime={endTime}
+            timeCheck={timeCheck}
         />
     );
-    const handleSelectChange = (e) => {
-        setSelected(e.target.value)
-        setselectedIndex(e.target.selectedIndex)
-        setSelectedStart(coinList[e.target.selectedIndex].e - timeScope)
-        setSelectedEnd(coinList[e.target.selectedIndex].e)
-        setCurrentPage(1)
-    }
-
-    const handleSelectStart = (e) => {
-        const value = e.target.value
-        const start = value.slice(0,4)+value.slice(5,7)+value.slice(8,10)+'0000'
-        if(Number(start) < Number(selectedEnd)) {
-            setSelectedStart(value.slice(0,4)+value.slice(5,7)+value.slice(8,10)+`0000`)
-            setStartDateInput(value)
-        } else {
-            alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
-            return
-        }
-    }
-    const handleSelectEnd = (e) => {
-        const value = e.target.value
-        const end = value.slice(0,4)+value.slice(5,7)+value.slice(8,10)+'0000'
-        if(Number(selectedStart) < Number(end)) {
-            setSelectedEnd(value.slice(0,4)+value.slice(5,7)+value.slice(8,10)+`0000`)
-            setEndDateInput(value)
-        } else {
-            alert(`종료날짜는 시작날짜보다 작을 수 없습니다.`)
-            return
-        }
-    }
-
-    const handleMinusBtn = (e) => {
-            setCurrentPage(currentPage + 1)
-    }
-    const handlePlusBtn = (e) => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1)
-        }
-    }
 
     return (
         <>
@@ -207,11 +272,14 @@ const Main = () => {
             <Market>
                 {selected}
             </Market>
-            <PageBtn onClick={handleMinusBtn}>-</PageBtn>
-            <DateInput defaultValue={startDateInput} onChange={handleSelectStart} type="date" />
+            <DateInput value={startDateInput} onChange={handleDateStart} type="date" />
             -
-            <DateInput defaultValue={endDateInput} onChange={handleSelectEnd} type="date" />
-            <PageBtn onClick={handlePlusBtn}>+</PageBtn>
+            <DateInput value={endDateInput} onChange={handleDateEnd} type="date" />
+            <br />
+            <DateInput value={startTimeInput} onChange={handleHourStart} type="time" />
+            -
+            <DateInput value={endTimeInput} onChange={handleHourEnd} type="time" />
+            <br />
             {minBtn && tickComponent}
             {dateBtn && tickComponent}
             {weekBtn && tickComponent}

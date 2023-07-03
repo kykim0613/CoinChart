@@ -27,6 +27,7 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
             try {
                 const data = await upbitCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
                 setUpbitCoins(data)
+                console.log(Math.ceil(data.length / 300))
             } catch (error) {
                 console.log(error)
             }
@@ -40,6 +41,7 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
             try {
                 const data = await binanceCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
                 setBinanceCoins(data)
+                console.log(data)
             } catch (error) {
                 console.log(error)
             }
@@ -76,7 +78,6 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
     }
 
     useEffect(() => {
-        // let timeArray = []
         const upbitArray = upbitCoins.map((coin) => coin.closePrice)
         const binanceArray = binanceCoins.map((coin) => coin.closePrice)
         const upbitTime = upbitCoins.map((utc) => utc.dateTimeUtc)
@@ -105,6 +106,7 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
                 borderColor: '#fcd905',
                 backgroundColor: '#fcd905',
                 tension: 0.1,
+                yAxisID: 'left-axis',
             },
             {
                 label: `Upbit`,
@@ -113,6 +115,26 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
                 borderColor: '#005ca7',
                 backgroundColor: '#005ca7',
                 tension: 0.1,
+                yAxisID: 'left-axis',
+            },
+            {
+                label: `Binance Volume`,
+                data: binanceVolume,
+                fill: false,
+                backgroundColor: 'rgba(252, 217, 5, 0.3)',
+                tension: 0.1,
+                type: 'bar',
+                yAxisID: 'right-axis',
+
+            },
+            {
+                label: `Upbit Volume`,
+                data: upbitVolume,
+                fill: false,
+                backgroundColor: 'rgba(0, 92, 167, 0.3)',
+                tension: 0.1,
+                type: 'bar',
+                yAxisID: 'right-axis',
             },
         ],
     }
@@ -122,13 +144,13 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
             y: {
                 min: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 0.8,
                 max: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 1.2,
-                position: 'left',
+                display: false,
             },
             x: {
                 grid: {
                     display: false
                 }
-            }
+            },
         },
         animation: {
             duration: 0
@@ -157,79 +179,86 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
                 enabled: true,
                 backgroundColor: `#333`
             },
+            legend: {
+                labels: {
+                    filter: function ( legendItem, chartData) {
+                        return legendItem.text !== 'Binance Volume' && legendItem.text !== 'Upbit Volume'
+                    }
+                }
+            }
         }
     }
 
-    const barChart = {
-        labels: time,
-        datasets: [
-            {
-                label: `Binance`,
-                data: binanceVolume,
-                fill: false,
-                backgroundColor: '#fcd905',
-                tension: 0.1,
-            },
-            {
-                label: `Upbit`,
-                data: upbitVolume,
-                fill: false,
-                backgroundColor: '#005ca7',
-                tension: 0.1,
-            },
-        ],
-    }
+    // const barChart = {
+    //     labels: time,
+    //     datasets: [
+    //         {
+    //             label: `Binance`,
+    //             data: binanceVolume,
+    //             fill: false,
+    //             backgroundColor: '#fcd905',
+    //             tension: 0.1,
+    //         },
+    //         {
+    //             label: `Upbit`,
+    //             data: upbitVolume,
+    //             fill: false,
+    //             backgroundColor: '#005ca7',
+    //             tension: 0.1,
+    //         },
+    //     ],
+    // }
 
-    const barOptions = {
-        scales: {
-            y: {
-                position: 'right',
-                grid: {
-                    display: false
-                }
-            },
-            x: {
-                display: false,
-                grid: {
-                    display: false
-                }
-            },
-        },
-        animation: {
-            duration: 0
-        },
-        interaction: {
-            intersect: false,
-            mode: 'index'
-        },
-        plugins: {
-            zoom: {
-                pan: {
-                    enabled: true,
-                    mode: 'x'
-                },
-                zoom: {
-                    wheel: {
-                        enabled: true,
-                    },
-                    pinch: {
-                        enabled: true,
-                    },
-                    mode: 'x',
-                },
-            },
-            tooltip: {
-                enabled: true,
-                backgroundColor: `#333`
-            },
-        },
-    }
+    // const barOptions = {
+    //     scales: {
+    //         y: {
+    //             position: 'right',
+    //             grid: {
+    //                 display: false
+    //             }
+    //         },
+    //         x: {
+    //             display: false,
+    //             grid: {
+    //                 display: false
+    //             }
+    //         },
+    //     },
+    //     animation: {
+    //         duration: 0
+    //     },
+    //     interaction: {
+    //         intersect: false,
+    //         mode: 'index'
+    //     },
+    //     plugins: {
+    //         zoom: {
+    //             pan: {
+    //                 enabled: true,
+    //                 mode: 'x'
+    //             },
+    //             zoom: {
+    //                 wheel: {
+    //                     enabled: true,
+    //                 },
+    //                 pinch: {
+    //                     enabled: true,
+    //                 },
+    //                 mode: 'x',
+    //             },
+    //         },
+    //         tooltip: {
+    //             enabled: true,
+    //             backgroundColor: `#333`
+    //         },
+    //     },
+    // }
 
     return (
         <>
             <VolumeContainer>
-                <Line data={lineChart} options={LineOptions} />
-                <Bar data={barChart} options={barOptions} onChange={console.log('run time:' + (Date.now() - timeCheck))} />
+                <Line data={lineChart} options={LineOptions} onChange={console.log('run time:' + (Date.now() - timeCheck))} />
+                {/* <Bar data={barChart} options={barOptions} onChange={console.log('run time:' + (Date.now() - timeCheck))} /> */}
             </VolumeContainer>
         </>
     )

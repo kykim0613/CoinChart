@@ -141,7 +141,7 @@ const Main = () => {
         setMonthBtn(false)
         setSelectedTime(10000)
         setTimeScope(300)
-        inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
+        inputDate(coinList[selectedIndex].e, coinList[selectedIndex].e)
         fixTime()
         timeCheck = Date.now()
     }
@@ -213,8 +213,8 @@ const Main = () => {
         if (dateBtn === true) {
             setSelectedStart(sliceDatefunc(value))
             setStartDateInput(value)
-            setSelectedEnd(sliceDatefunc(endDayString))
-            setEndDateInput(endDayString)
+            setSelectedEnd(sliceDatefunc(value))
+            setEndDateInput(value)
         }
 
         if (weekBtn === true) {
@@ -234,9 +234,6 @@ const Main = () => {
         const value = e.target.value
         const end = new Date(value)
 
-        const prevDay = new Date(end.getTime() - day)
-        const prevDayString = toString(prevDay)
-
         const prevWeek = new Date(end.getTime() - (day * 7))
         const prevWeekString = toString(prevWeek)
 
@@ -254,8 +251,8 @@ const Main = () => {
             }
         }
         if (dateBtn === true) {
-            setSelectedStart(sliceDatefunc(prevDayString))
-            setStartDateInput(prevDayString)
+            setSelectedStart(sliceDatefunc(value))
+            setStartDateInput(value)
             setSelectedEnd(sliceDatefunc(value))
             setEndDateInput(value)
         }

@@ -21,13 +21,14 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
     const [upbitVolume, setUpbitVolume] = useState([])
     const [binanceVolume, setBinanceVolume] = useState([])
     const [binancePriceArray, setBinancePriceArray] = useState([])
+    const [upTime, setUpTime] = useState([])
+    const [binTime, setBinTime] = useState([])
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data = await upbitCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
                 setUpbitCoins(data)
-                console.log(Math.ceil(data.length / 300))
             } catch (error) {
                 console.log(error)
             }
@@ -41,7 +42,6 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
             try {
                 const data = await binanceCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
                 setBinanceCoins(data)
-                console.log(data)
             } catch (error) {
                 console.log(error)
             }
@@ -78,23 +78,34 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
     }
 
     useEffect(() => {
-        const upbitArray = upbitCoins.map((coin) => coin.closePrice)
         const binanceArray = binanceCoins.map((coin) => coin.closePrice)
-        const upbitTime = upbitCoins.map((utc) => utc.dateTimeUtc)
+        const upbitArray = upbitCoins.map((coin) => coin.closePrice)
         const binanceTime = binanceCoins.map((utc) => utc.closeTime)
-        const upVolume = upbitCoins.map((vol) => vol.candleAccTradeVolume)
+        const upbitTime = upbitCoins.map((utc) => utc.dateTimeUtc)
         const bnbVolume = binanceCoins.map((vol) => vol.candleAccTradeVolume)
+        const upVolume = upbitCoins.map((vol) => vol.candleAccTradeVolume)
 
 
         const timeList = Array.from(new Set([...upbitTime, ...binanceTime]))
 
-        setUpBitPriceArray(upbitArray)
-        setBinancePriceArray(binanceArray)
-        setTime(grahpX(timeList.sort((a, b) => a - b)))
-        setUpbitVolume(upVolume)
-        setBinanceVolume(bnbVolume)
-    }, [upbitCoins, binanceCoins])
+        // x축을 넘기고 찍는거보다 가격에 없는 값을 넣는게 더 좋다고 판단
+        const upbitPrice = binanceTime.map((time, index) => {
+            const currentIndex = upbitTime.indexOf(time);
+            return currentIndex !== -1 ? upbitArray[currentIndex] : null
+        })
 
+        setBinancePriceArray(binanceArray)
+        setUpBitPriceArray(upbitPrice)
+        setTime(grahpX(timeList.sort((a, b) => a - b)))
+        setBinanceVolume(bnbVolume)
+        setUpbitVolume(upVolume)
+
+        setBinTime(grahpX(binanceTime))
+        setUpTime(grahpX(upbitTime))
+
+
+
+    }, [upbitCoins, binanceCoins])
 
     const lineChart = {
         labels: time,
@@ -107,6 +118,7 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
                 backgroundColor: '#fcd905',
                 tension: 0.1,
                 yAxisID: 'left-axis',
+                // xAxisID: 'x-axis-1',
             },
             {
                 label: `Upbit`,
@@ -116,6 +128,7 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
                 backgroundColor: '#005ca7',
                 tension: 0.1,
                 yAxisID: 'left-axis',
+                // xAxisID: 'x-axis-2',
             },
             {
                 label: `Binance Volume`,
@@ -145,11 +158,15 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
                 min: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 0.8,
                 max: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 1.2,
                 display: false,
+                position: 'left'
             },
             x: {
                 grid: {
                     display: false
-                }
+                },
+                // id: 'x-axis-2',
+                // type: 'category',
+                // position: 'top',
             },
         },
         animation: {
@@ -181,7 +198,7 @@ const Ticks = ({ selected, timeScope, selectedStart, selectedEnd, startTime, end
             },
             legend: {
                 labels: {
-                    filter: function ( legendItem, chartData) {
+                    filter: function (legendItem, chartData) {
                         return legendItem.text !== 'Binance Volume' && legendItem.text !== 'Upbit Volume'
                     }
                 }

@@ -7,21 +7,26 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 Chart.register(zoomPlugin)
 
 const VolumeContainer = styled.div`
-    width: 100vh;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%)
+  width: 100vh;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%)
 `
 
+const graphPointCount = 100;
+
 const Ticks = ({ selected, selectedStart, selectedEnd, startTime, endTime, timeCheck }) => {
+    const [xAxis, setXAxis] = useState([])
     const [upbitCoins, setUpbitCoins] = useState([])
     const [binanceCoins, setBinanceCoins] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
     const [upbitVolume, setUpbitVolume] = useState([])
     const [binanceVolume, setBinanceVolume] = useState([])
     const [binancePriceArray, setBinancePriceArray] = useState([])
-    const [binanceTime, setBinanceTime] = useState([])
-    const [upbitTime, setUpbitTime] = useState([])
+
+    useEffect(() => {
+        createXAxis();
+    }, [selectedStart, selectedEnd, startTime, endTime])
 
     useEffect(() => {
         const fetchData = async () => {
@@ -52,6 +57,70 @@ const Ticks = ({ selected, selectedStart, selectedEnd, startTime, endTime, timeC
 
         fetchData()
     }, [selectedStart, selectedEnd, selected, startTime, endTime])
+
+    function createXAxis() {
+        const runTime = new Date();
+
+        // yyyymmddhhmmss 형태로 만듬.
+        const startDateTime = Number(selectedStart) * 10000 + Number(startTime);
+        const endDateTime = Number(selectedEnd) * 10000 + Number(endTime);
+
+        // year, month, day, hour, min 으로 쪼갬
+        const st = parseNumberTime(startDateTime);
+        const et = parseNumberTime(endDateTime);
+
+        // date 객체로 만듬.
+        const startDate = new Date(st.year, st.month - 1, st.day, st.hour, st.min);
+        const endDate = new Date(et.year, et.month - 1, et.day, et.hour, et.min);
+
+        // 기간의 전체 분을 구함
+        const totalMinute = (endDate - startDate) / (60 * 1000);
+
+        // 그래프상 점과 점 사이의 간격을 구함.
+        // 단위는 분.
+        // 1보다 작지 않도록 조정
+        // 시작점과 끝점을 강제로 넣기 때문에 graphPointCount 에서 1을 빼줌
+        const interval = Math.max(totalMinute / (graphPointCount - 1), 1);
+        console.log(`totalMinute:${totalMinute}, graphPointCount:${graphPointCount}, interval:${interval}`)
+
+        const xAxisSet = new Set();
+        xAxisSet.add(startDateTime); // 시작점 추가
+
+        let tempMinute = 0;
+        let tempDate = startDate;
+        while (tempDate < endDate) {
+            tempDate = new Date(startDate.getTime());
+            tempDate.setMinutes(startDate.getMinutes() + Math.ceil(tempMinute += interval));
+
+            const tempNumberDate = dateToNumberDate(tempDate);
+            if (tempNumberDate < endDateTime) {
+                xAxisSet.add(tempNumberDate);
+            }
+        }
+
+        xAxisSet.add(endDateTime); // 끝점 추가
+        setXAxis(Array.from(xAxisSet));
+        console.log('xAxis')
+        console.log(xAxisSet)
+        console.log(`create xAxis Time:${new Date() - runTime}`)
+    }
+
+    const parseNumberTime = (numberTime) => {
+        const year = numberTime / 100000000 | 0
+        const month = numberTime / 1000000 % 100 | 0
+        const day = numberTime / 10000 % 100 | 0
+        const hour = numberTime / 100 % 100 | 0
+        const min = numberTime % 100 | 0
+        return {year: year, month: month, day: day, hour: hour, min: min}
+    }
+
+    function dateToNumberDate(tempDate) {
+        return tempDate.getFullYear() * 100000000
+            + (tempDate.getMonth() + 1) * 1000000
+            + tempDate.getDate() * 10000
+            + tempDate.getHours() * 100
+            + tempDate.getMinutes();
+    }
 
     const groupedArray = (data) => {
         const array = []
@@ -125,24 +194,19 @@ const Ticks = ({ selected, selectedStart, selectedEnd, startTime, endTime, timeC
     }
 
     useEffect(() => {
-
         const { volume } = processedData(binanceCoins)
         const price = binanceCoins.map((coin) => coin.cp * 1300 | 0)
-        const time = binanceCoins.map((utc) => utc.t)
+
         setBinancePriceArray(price)
         setBinanceVolume(volume)
-        setBinanceTime(time)
 
     }, [binanceCoins])
 
     useEffect(() => {
-
         const { price, volume } = processedData(upbitCoins)
-        const time = upbitCoins.map((utc) => utc.t)
 
         setUpBitPriceArray(price)
         setUpbitVolume(volume)
-        setUpbitTime(time)
 
     }, [upbitCoins])
 
@@ -155,29 +219,13 @@ const Ticks = ({ selected, selectedStart, selectedEnd, startTime, endTime, timeC
         }
         return result
     }
-    const grahpX = (time) => {
-        let x = []
-        for (let i = 0; i < time.length; i++) {
-            const month = time[i] / 1000000 % 100 | 0
-            const date = time[i] / 10000 % 100 | 0
-            const hour = time[i] / 100 % 100 | 0
-            const min = time[i] % 100
 
-            x.push(`${month < 10 ? `0` + month : month}/${date < 10 ? `0` + date : date} ${hour < 10 ? `0` + hour : hour}:${min < 10 ? `0` + min : min}`)
-        }
-        return x
-    }
-
-    const time = Array.from(new Set([...binanceTime, ...upbitTime])).sort((a, b) => a - b)
-
-    const binanceX = grahpX(binanceTime)
-    const upbitX = grahpX(upbitTime)
     const lineChart = {
-        labels: grahpX(time),
+        labels: xAxis,
         datasets: [
             {
                 label: `Binance`,
-                data: makeAxis(binanceX, binancePriceArray),
+                data: makeAxis(xAxis, binancePriceArray),
                 fill: false,
                 borderColor: '#fcd905',
                 backgroundColor: '#fcd905',
@@ -187,7 +235,7 @@ const Ticks = ({ selected, selectedStart, selectedEnd, startTime, endTime, timeC
             },
             {
                 label: `Upbit`,
-                data: makeAxis(upbitX, upbitPriceArray),
+                data: makeAxis(xAxis, upbitPriceArray),
                 fill: false,
                 borderColor: '#005ca7',
                 backgroundColor: '#005ca7',
@@ -197,7 +245,7 @@ const Ticks = ({ selected, selectedStart, selectedEnd, startTime, endTime, timeC
             },
             {
                 label: `Binance Volume`,
-                data: makeAxis(binanceX, binanceVolume),
+                data: makeAxis(xAxis, binanceVolume),
                 fill: false,
                 backgroundColor: 'rgba(252, 217, 5, 0.3)',
                 tension: 0.1,
@@ -207,7 +255,7 @@ const Ticks = ({ selected, selectedStart, selectedEnd, startTime, endTime, timeC
             },
             {
                 label: `Upbit Volume`,
-                data: makeAxis(upbitX, upbitVolume),
+                data: makeAxis(xAxis, upbitVolume),
                 fill: false,
                 backgroundColor: 'rgba(0, 92, 167, 0.3)',
                 tension: 0.1,
@@ -217,8 +265,6 @@ const Ticks = ({ selected, selectedStart, selectedEnd, startTime, endTime, timeC
         ],
     }
 
-    const array1 = [1, 4, 5, 8, 7]
-    const array2 = [1, 2, 3, 4, 6, 7, 9, 10]
     const LineOptions = {
         scales: {
             y: {

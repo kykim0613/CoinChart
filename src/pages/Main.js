@@ -3,14 +3,8 @@ import { Bar, Line } from "react-chartjs-2";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import Ticks from "./Ticks";
-import { ListAPI, binanceCandlesAPI, binanceListAPI, upbitCandlesAPI, upbitListAPI } from "../api";
-import TimePicker from "react-time-picker";
+import { ListAPI } from "../api";
 
-const PageBtn = styled.button`
-    width: 50px;
-    height: 25px;
-    backgroundColor: none
-`
 const DateInput = styled.input`
     width:120px;
     height:20px;
@@ -46,7 +40,6 @@ const Main = () => {
     const [dateBtn, setDateBtn] = useState(false)
     const [weekBtn, setWeekBtn] = useState(false)
     const [monthBtn, setMonthBtn] = useState(false)
-    const [timeScope, setTimeScope] = useState(60)
     const [selected, setSelected] = useState(``)
     const [selectedIndex, setselectedIndex] = useState(0)
     const [selectList, setSelectList] = useState([])
@@ -118,8 +111,8 @@ const Main = () => {
     const fixTime = () => {
         setStartTime('0000')
         setStartTimeInput('00:00')
-        setEndTime('2359')
-        setEndTimeInput('23:59')
+        setEndTime('0000')
+        setEndTimeInput('00:00')
     }
 
     const handleMinBtn = () => {
@@ -129,7 +122,6 @@ const Main = () => {
         setWeekBtn(false)
         setMonthBtn(false)
         setSelectedTime(100)
-        setTimeScope(300)
         inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         timeCheck = Date.now()
     }
@@ -140,8 +132,7 @@ const Main = () => {
         setWeekBtn(false)
         setMonthBtn(false)
         setSelectedTime(10000)
-        setTimeScope(300)
-        inputDate(coinList[selectedIndex].e, coinList[selectedIndex].e)
+        inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         fixTime()
         timeCheck = Date.now()
     }
@@ -151,8 +142,7 @@ const Main = () => {
         setDateBtn(false)
         setWeekBtn(true)
         setMonthBtn(false)
-        setSelectedTime(300)
-        setTimeScope(10080)
+        setSelectedTime(70000)
         inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         fixTime()
         timeCheck = Date.now()
@@ -164,7 +154,6 @@ const Main = () => {
         setWeekBtn(false)
         setMonthBtn(true)
         setSelectedTime(1000000)
-        setTimeScope(300)
         inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         fixTime()
         timeCheck = Date.now()
@@ -193,8 +182,8 @@ const Main = () => {
         const value = e.target.value
         const start = new Date(value)
 
-        const endDay = new Date(start.getTime() + day)
-        const endDayString = toString(endDay)
+        const endDate = new Date(start.getTime() + (day))
+        const endDateString = toString(endDate)
 
         const endWeek = new Date(start.getTime() + (day * 7))
         const endWeekString = toString(endWeek)
@@ -213,8 +202,8 @@ const Main = () => {
         if (dateBtn === true) {
             setSelectedStart(sliceDatefunc(value))
             setStartDateInput(value)
-            setSelectedEnd(sliceDatefunc(value))
-            setEndDateInput(value)
+            setSelectedEnd(sliceDatefunc(endDateString))
+            setEndDateInput(endDateString)
         }
 
         if (weekBtn === true) {
@@ -234,13 +223,14 @@ const Main = () => {
         const value = e.target.value
         const end = new Date(value)
 
+        const prevDate = new Date(end.getTime() - (day))
+        const prevDateString = toString(prevDate)
+
         const prevWeek = new Date(end.getTime() - (day * 7))
         const prevWeekString = toString(prevWeek)
 
         const prevMonth = new Date(end.getFullYear(), end.getMonth() - 1, end.getDate())
         const prevMonthString = toString(prevMonth)
-
-        console.log(prevMonthString)
 
         if (minBtn === true) {
             if (Number(`${selectedStart}${startTime}`) < Number(`${sliceDatefunc(value)}${endTime}`)) {
@@ -251,8 +241,8 @@ const Main = () => {
             }
         }
         if (dateBtn === true) {
-            setSelectedStart(sliceDatefunc(value))
-            setStartDateInput(value)
+            setSelectedStart(sliceDatefunc(prevDateString))
+            setStartDateInput(prevDateString)
             setSelectedEnd(sliceDatefunc(value))
             setEndDateInput(value)
         }
@@ -296,7 +286,6 @@ const Main = () => {
     const tickComponent = (
         <Ticks
             selected={selected}
-            timeScope={timeScope}
             selectedStart={selectedStart}
             selectedEnd={selectedEnd}
             startTime={startTime}

@@ -48,7 +48,7 @@ export const upbitListAPI = async () => {
 }
 
 export const binanceListAPI = async () => {
-    const response = await fetch(`http://${ip}/api/binance/symbols`)
+    const response = await fetch(`http://${ip}/api/binance/markets`)
     const data = await response.json()
     return data
 }
@@ -61,7 +61,7 @@ export const upbitCandlesAPI = async (market, start, end, startTime, endTime) =>
 }
 
 export const binanceCandlesAPI = async (market, start, end, startTime, endTime) => {
-    const response = await fetch(`http://${ip}/api/binance/candles?symbol=${market}USDT&start=${start}${startTime}&end=${end}${endTime}`)
+    const response = await fetch(`http://${ip}/api/binance/candles?market=${market}USDT&start=${start}${startTime}&end=${end}${endTime}`)
     const data = await response.json()
 
     return data
@@ -71,16 +71,7 @@ export const ListAPI = async () => {
     const data1 = await upbitListAPI()
 
     const data2 = await binanceListAPI()
-    // let coinListArray = []
-    // const upbitLength = upbitSymbol.length
-    // const binanceLength = binanceSymbol.length
-    // for (let i = 0; i < upbitLength; i++) {
-    //     for (let j = 0; j < binanceLength; j++) {
-    //         if (upbitSymbol[i] === binanceSymbol[j]) {
-    //             coinListArray = [...coinListArray, dataList[i]]
-    //         }
-    //     }
-    // }
+
     const dataFilter = data1.filter((item1) => {
         return data2.some((item2) => {
             return item1.t.slice(4, item1.t.length) === item2.t.slice(0, item2.t.length - 4)

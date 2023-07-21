@@ -5,3 +5,7 @@ export const Market = styled.h1`
     height: 100px;
     margin: 0 auto;
 `
+
+export const Axis = () => {
+    
+}

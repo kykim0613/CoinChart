@@ -2,8 +2,9 @@ import { CategoryScale, Chart as ChartJS, Legend, LineElement, LinearScale, Poin
 import { Bar, Line } from "react-chartjs-2";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
-import Ticks from "./Ticks";
 import { ListAPI } from "../api";
+import LineChart from "./LineChart";
+import XAxis from "./XAxis";
 
 const DateInput = styled.input`
     width:120px;
@@ -284,7 +285,7 @@ const Main = () => {
     }
 
     const tickComponent = (
-        <Ticks
+        <XAxis
             selected={selected}
             selectedStart={selectedStart}
             selectedEnd={selectedEnd}

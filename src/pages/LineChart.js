@@ -67,6 +67,14 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         let timeRange = xAxis[count]
         let groupedArray = [];
 
+        Array.prototype.max = function() {
+            return Math.max.apply(null, this)
+        }
+    
+        Array.prototype.min = function() {
+            return Math.min.apply(null, this)
+        }
+
         for (let i = 0; i < dataLength; i++) {
             const time = closeTime[i]
 
@@ -103,26 +111,28 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
             const tv = array[i].map((volume) => volume.tv)
             const t = array[i].map((time) => time.t)
             const axis = xAxis[i]
-            console.log(axis, t)
 
             const tick = {
                 m: m[0],
                 op: op[0],
                 cp: cp[cp.length - 1],
-                hp: Math.max(...hp),
-                lp: Math.min(...lp),
+                hp: hp.max(),
+                lp: lp.min(),
                 tv: tv.reduce((a, b) => a + b) / tv.length,
-                t: axis
+                t: t[0]
             }
             result.push(tick)
         }
+
         return result
 
     }
 
+    const axis = Array.from(new Set([...xAxis, ...upbitAxisArray, ...binanceAxisArray])).sort((a,b) => a - b)
+
     const makeAxis = (x, y) => {
         let result = []
-        const length = Math.max(x.length, y.length)
+        const length = xAxis.length
 
         for (let i = 0; i < length; i++) {
             result.push({ x: x[i], y: y[i] })
@@ -131,19 +141,20 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     }
 
 
+    // const upbitAxis = () => {
+    //     const length = xAxis.length
+    //     for(let i = 0; i < length; i++) {
+    //         if (xAxis[i]){
+
+    //         }
+    //     }
+    // }
+
+
+    // 업비트
     const lineChart = {
-        labels: xAxis,
+        labels: axis,
         datasets: [
-            {
-                label: `Binance`,
-                data: makeAxis(binanceAxisArray, binancePriceArray),
-                fill: false,
-                borderColor: '#fcd905',
-                backgroundColor: '#fcd905',
-                tension: 0.1,
-                yAxisID: 'left-axis',
-                // xAxisID: 'x-axis-1',
-            },
             {
                 label: `Upbit`,
                 data: makeAxis(upbitAxisArray, upbitPriceArray),
@@ -153,6 +164,16 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                 tension: 0.1,
                 yAxisID: 'left-axis',
                 // xAxisID: 'x-axis-2',
+            },
+            {
+                label: `Binance`,
+                data: makeAxis(binanceAxisArray, binancePriceArray),
+                fill: false,
+                borderColor: '#fcd905',
+                backgroundColor: '#fcd905',
+                tension: 0.1,
+                yAxisID: 'left-axis',
+                // xAxisID: 'x-axis-1',
             },
             {
                 label: `Binance Volume`,

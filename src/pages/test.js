@@ -15,32 +15,32 @@
 // }
 // dataArray.push(data)
 
-const data = [1, 2, 6, 9, 11, 14, 15, 17, 18, 19];
-const result = [];
-let sliceSize = 5;
-let num = sliceSize
-let count = 2
+// const data = [1, 2, 6, 9, 11, 14, 15, 17, 18, 19];
+// const result = [];
+// let sliceSize = 5;
+// let num = sliceSize
+// let count = 2
 
-let sum = 0;
+// let sum = 0;
 
-for (let i = 0; i < data.length; i++) {
+// for (let i = 0; i < data.length; i++) {
 
-    if(data[i] <= sliceSize ) {
-        sum += data[i]
-    }
+//     if(data[i] <= sliceSize ) {
+//         sum += data[i]
+//     }
 
-    if(sliceSize < data[i]){
-        result.push(sum)
-        sum = 0
-        sliceSize = num * count
-        count++
-        i--
-    }
-}
-if (sum > 0){
-    result.push(sum)
-}
-console.log(result, sum);
+//     if(sliceSize < data[i]){
+//         result.push(sum)
+//         sum = 0
+//         sliceSize = num * count
+//         count++
+//         i--
+//     }
+// }
+// if (sum > 0){
+//     result.push(sum)
+// }
+// console.log(result, sum);
 
 
 

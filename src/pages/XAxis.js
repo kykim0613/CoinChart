@@ -45,7 +45,7 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime }) => 
         // 1보다 작지 않도록 조정
         // 시작점과 끝점을 강제로 넣기 때문에 graphPointCount 에서 1을 빼줌
         const interval = Math.max(totalMinute / (graphPointCount - 1), 1);
-        console.log(`totalMinute:${totalMinute}, graphPointCount:${graphPointCount}, interval:${interval}`)
+        // console.log(`totalMinute:${totalMinute}, graphPointCount:${graphPointCount}, interval:${interval}`)
 
         const xAxisSet = new Set();
         xAxisSet.add(startDateTime); // 시작점 추가

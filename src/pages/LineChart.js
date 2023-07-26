@@ -3,6 +3,8 @@ import { Bar, Line } from "react-chartjs-2"
 import { binanceCandlesAPI, upbitCandlesAPI } from "../api"
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import { useRecoilState } from "recoil";
+import { loading } from "../atom";
 Chart.register(zoomPlugin)
 
 
@@ -16,6 +18,8 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     const [upbitVolumeArray, setUpbitVolumeArray] = useState([])
     const [upbitAxisArray, setUpbitAxisArray] = useState([])
     const [binanceAxisArray, setBinanceAxisArray] = useState([])
+
+    const [loader, setLoader] = useRecoilState(loading)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -48,6 +52,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                 setUpbitVolumeArray(upbitVolume)
                 setUpbitAxisArray(upbitAxis)
 
+                setLoader(false)
 
             } catch (error) {
                 console.log(error)
@@ -56,6 +61,8 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
 
         fetchData()
     }, [xAxis])
+    
+    console.log(loader)
 
     const groupedArray = (data) => {
         const array = []
@@ -110,7 +117,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
             const lp = array[i].map((lowPrice) => lowPrice.lp)
             const tv = array[i].map((volume) => volume.tv)
             const t = array[i].map((time) => time.t)
-            const axis = xAxis[i]
 
             const tick = {
                 m: m[0],
@@ -118,7 +124,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                 cp: cp[cp.length - 1],
                 hp: hp.max(),
                 lp: lp.min(),
-                tv: tv.reduce((a, b) => a + b) / tv.length,
+                tv: tv.reduce((a, b) => a + b, 0) / tv.length,
                 t: t[0]
             }
             result.push(tick)
@@ -140,18 +146,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         return result
     }
 
-
-    // const upbitAxis = () => {
-    //     const length = xAxis.length
-    //     for(let i = 0; i < length; i++) {
-    //         if (xAxis[i]){
-
-    //         }
-    //     }
-    // }
-
-
-    // 업비트
     const lineChart = {
         labels: axis,
         datasets: [

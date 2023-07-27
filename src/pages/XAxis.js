@@ -20,7 +20,7 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime }) => 
 
     useEffect(() => {
         createXAxis();
-    },[selectedStart, selectedEnd, startTime, endTime])
+    },[selected, selectedStart, selectedEnd, startTime, endTime])
 
     function createXAxis() {
         const runTime = new Date();

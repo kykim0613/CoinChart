@@ -24,7 +24,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     useEffect(() => {
         const fetchData = async () => {
             try {
-
                 const [data1, data2] = await Promise.all([
                     binanceCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime),
                     upbitCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
@@ -36,13 +35,15 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                 setBinanceCoins(dataArray1)
                 setUpbitCoins(dataArray2)
 
-                const binancePrice = dataArray1.map((price) => price.cp * 1300 | 0)
-                const binanceVolume = dataArray1.map((volume) => volume.tv)
-                const binanceAxis = dataArray1.map((axis) => axis.t) 
+                //TODO
+                // if 문으로 변수 하나 넣어서 원화로 볼지 상승률로 볼지 화면에서 컨트롤 할수있도록 변경.
 
-                const upbitPrice = dataArray2.map((price) => price.cp)
-                const upbitVolume = dataArray2.map((volume) => volume.tv)
-                const upbitAxis = dataArray2.map((axis) => axis.t) 
+                // 상승률로 하는 경우
+                const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, true, null);
+                const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, true, null);
+                // 원화로 하는 경우
+                // const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
+                // const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
 
                 setBinancePriceArray(binancePrice)
                 setBinanceVolumeArray(binanceVolume)
@@ -61,8 +62,46 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
 
         fetchData()
     }, [xAxis])
-    
+
     console.log(loader)
+
+    /**
+     *
+     * @param data 데이터 Array
+     * @param isRate true=상승률, false=원화
+     * @param exchangeRate 환율 적용할 금액. ex) 한화=1, 달러=1300 등
+     * @returns {[*[가격List],*[거래량List],*[x축]]}
+     */
+    const sepLists = (data, isRate, exchangeRate) => {
+        const priceList = [] // 가격 데이터
+        const volumeList = [] // 거래량 데이터
+        const axisList = [] // 시간축 데이터
+
+        const firstPrice = data[0].cp; // 기준점이 될 첫번째 값.
+        let len = data.length;
+        // for 내부에서 if 실행시
+        // 코드는 간결해질 수 있으나 for 반복 개수만큼 if 실행됨.
+        // 중복코드가 있고 코드가 길어지더라도
+        // 불필요한 리소스 낭비를 막기 위해 for 외부에 if 실행.
+        if (isRate) {
+            for (let i = 0; i < len; i++) {
+                const node = data[i];
+                // 현재값 / 기준점값 통해 기준점 값 대비 몇% 상승 혹은 하락인지 표기
+                priceList.push(node.cp / firstPrice);
+                volumeList.push(node.tv);
+                axisList.push(node.t);
+            }
+        } else {
+            for (let i = 0; i < len; i++) {
+                const node = data[i];
+                // 환율 곱해준 후 소수점 제거
+                priceList.push(node.cp * exchangeRate | 0);
+                volumeList.push(node.tv);
+                axisList.push(node.t);
+            }
+        }
+        return [priceList, volumeList, axisList];
+    }
 
     const groupedArray = (data) => {
         const array = []
@@ -77,7 +116,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         Array.prototype.max = function() {
             return Math.max.apply(null, this)
         }
-    
+
         Array.prototype.min = function() {
             return Math.min.apply(null, this)
         }

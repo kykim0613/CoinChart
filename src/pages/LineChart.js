@@ -4,8 +4,21 @@ import { binanceCandlesAPI, upbitCandlesAPI } from "../api"
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { useRecoilState } from "recoil";
-import { loading } from "../atom";
+import { binanceCoinsArray, loading, upbitCoinsArray } from "../atom";
+import styled from "styled-components";
 Chart.register(zoomPlugin)
+
+const ChangeBtn = styled.button`
+    width: 130px;
+    height: 40px;
+    border: none;
+    border-radius: 30px;
+    background-color: #333;
+    color: white;
+    :active {
+        background-color: #555
+    }
+`
 
 
 const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, xAxis, minBtn }) => {
@@ -16,7 +29,10 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     const [upbitVolumeArray, setUpbitVolumeArray] = useState([])
     const [upbitAxisArray, setUpbitAxisArray] = useState([])
     const [binanceAxisArray, setBinanceAxisArray] = useState([])
+    const [change, setChange] = useState(false)
 
+    const [upbitCoins, setUpbitCoins] = useRecoilState(upbitCoinsArray)
+    const [binanceCoins, setBinanceCoins] = useRecoilState(binanceCoinsArray)
     const [loader, setLoader] = useRecoilState(loading)
 
     useEffect(() => {
@@ -33,23 +49,29 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                 setBinanceCoins(dataArray1)
                 setUpbitCoins(dataArray2)
 
-                //TODO
-                // if 문으로 변수 하나 넣어서 원화로 볼지 상승률로 볼지 화면에서 컨트롤 할수있도록 변경.
-
-                // 상승률로 하는 경우
-                const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, true, null);
-                const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, true, null);
-                // 원화로 하는 경우
-                // const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
-                // const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
-
-                setBinancePriceArray(binancePrice)
-                setBinanceVolumeArray(binanceVolume)
-                setBinanceAxisArray(binanceAxis)
-
-                setUpBitPriceArray(upbitPrice)
-                setUpbitVolumeArray(upbitVolume)
-                setUpbitAxisArray(upbitAxis)
+                if (change === true) {
+                    const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, true, null)
+                    const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, true, null);
+                    setBinancePriceArray(binancePrice)
+                    setBinanceVolumeArray(binanceVolume)
+                    setBinanceAxisArray(binanceAxis)
+        
+                    setUpBitPriceArray(upbitPrice)
+                    setUpbitVolumeArray(upbitVolume)
+                    setUpbitAxisArray(upbitAxis)
+                }
+        
+                if (change === false) {
+                    const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
+                    const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
+                    setBinancePriceArray(binancePrice)
+                    setBinanceVolumeArray(binanceVolume)
+                    setBinanceAxisArray(binanceAxis)
+        
+                    setUpBitPriceArray(upbitPrice)
+                    setUpbitVolumeArray(upbitVolume)
+                    setUpbitAxisArray(upbitAxis)
+                }
 
                 setLoader(false)
 
@@ -60,11 +82,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
 
         fetchData()
     }, [xAxis])
-<<<<<<< HEAD
-=======
-
-    console.log(loader)
->>>>>>> adca38765ec71e25387bbf5704175cb5e2bada05
 
     /**
      *
@@ -78,7 +95,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         const volumeList = [] // 거래량 데이터
         const axisList = [] // 시간축 데이터
 
-        const firstPrice = data[0].cp; // 기준점이 될 첫번째 값.
+        const firstPrice = data.map((price) => price.cp)[0]; // 기준점이 될 첫번째 값.
         let len = data.length;
         // for 내부에서 if 실행시
         // 코드는 간결해질 수 있으나 for 반복 개수만큼 if 실행됨.
@@ -88,7 +105,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
             for (let i = 0; i < len; i++) {
                 const node = data[i];
                 // 현재값 / 기준점값 통해 기준점 값 대비 몇% 상승 혹은 하락인지 표기
-                priceList.push(node.cp / firstPrice);
+                priceList.push(Math.round(((node.cp / firstPrice) - 1) * 10000) / 100);
                 volumeList.push(node.tv);
                 axisList.push(node.t);
             }
@@ -114,11 +131,11 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         let timeRange = xAxis[count]
         let groupedArray = [];
 
-        Array.prototype.max = function() {
+        Array.prototype.max = function () {
             return Math.max.apply(null, this)
         }
 
-        Array.prototype.min = function() {
+        Array.prototype.min = function () {
             return Math.min.apply(null, this)
         }
 
@@ -174,8 +191,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
 
     }
 
-    const axis = Array.from(new Set([...xAxis, ...upbitAxisArray, ...binanceAxisArray])).sort((a,b) => a - b)
-
     const length = xAxis.length
     const upbitLength = upbitAxisArray.length
 
@@ -187,17 +202,21 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         }
         return result
     }
-    const sortXaxis = () =>{
+    const sortXaxis = () => {
         let result = []
-        for(let i = 0; i < length; i++){
-            for(let j = 0; j < upbitLength; j++){
-                if(xAxis[i] === upbitAxisArray[j]){
+        for (let i = 0; i < length; i++) {
+            for (let j = 0; j < upbitLength; j++) {
+                if (xAxis[i] === upbitAxisArray[j]) {
                     result.push(xAxis[i])
                     break
                 }
             }
         }
         return result
+    }
+
+    const toFixedArray = (array) => {
+        return array.map((fix) => fix.toFixed(0))
     }
 
     const lineChart = {
@@ -211,7 +230,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                 backgroundColor: '#005ca7',
                 tension: 0.1,
                 yAxisID: 'left-axis',
-                // xAxisID: 'x-axis-2',
             },
             {
                 label: `Binance`,
@@ -221,26 +239,22 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                 backgroundColor: '#fcd905',
                 tension: 0.1,
                 yAxisID: 'left-axis',
-                // xAxisID: 'x-axis-1',
             },
             {
                 label: `Binance Volume`,
-                data: makeAxis(binanceAxisArray, binanceVolumeArray),
+                data: makeAxis(binanceAxisArray, toFixedArray(binanceVolumeArray)),
                 fill: false,
                 backgroundColor: 'rgba(252, 217, 5, 0.3)',
                 tension: 0.1,
                 type: 'bar',
-                yAxisID: 'right-axis',
-
             },
             {
                 label: `Upbit Volume`,
-                data: makeAxis(minBtn ? sortXaxis() : xAxis, upbitVolumeArray),
+                data: makeAxis(minBtn ? sortXaxis() : xAxis, toFixedArray(upbitVolumeArray)),
                 fill: false,
                 backgroundColor: 'rgba(0, 92, 167, 0.3)',
                 tension: 0.1,
                 type: 'bar',
-                yAxisID: 'right-axis',
             },
         ],
     }
@@ -248,8 +262,8 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     const LineOptions = {
         scales: {
             y: {
-                min: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 0.8,
-                max: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 1.2,
+                min: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 0.7,
+                max: ((binancePriceArray[binancePriceArray.length] + upbitPriceArray[upbitPriceArray.length]) / 2) * 1.3,
                 display: false,
                 position: 'left',
                 grid: {
@@ -287,7 +301,16 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
             },
             tooltip: {
                 enabled: true,
-                backgroundColor: `#333`
+                backgroundColor: `#333`,
+                callbacks: {
+                    label: function (context) {
+                        if (change === true) {
+                            if (context.dataset.label === 'Upbit' || context.dataset.label === 'Binance') {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
             },
             legend: {
                 labels: {
@@ -299,10 +322,41 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         }
     }
 
-    
+    const handleChangeBtn = () => {
+        if (change === false) {
+            const [binancePrice, binanceVolume, binanceAxis] = sepLists(binanceCoins, true, null)
+            const [upbitPrice, upbitVolume, upbitAxis] = sepLists(upbitCoins, true, null);
+            setBinancePriceArray(binancePrice)
+            setBinanceVolumeArray(binanceVolume)
+            setBinanceAxisArray(binanceAxis)
+
+            setUpBitPriceArray(upbitPrice)
+            setUpbitVolumeArray(upbitVolume)
+            setUpbitAxisArray(upbitAxis)
+
+            setChange(!change)
+
+        }
+
+        if (change === true) {
+            const [binancePrice, binanceVolume, binanceAxis] = sepLists(binanceCoins, false, 1300);
+            const [upbitPrice, upbitVolume, upbitAxis] = sepLists(upbitCoins, false, 1);
+            setBinancePriceArray(binancePrice)
+            setBinanceVolumeArray(binanceVolume)
+            setBinanceAxisArray(binanceAxis)
+
+            setUpBitPriceArray(upbitPrice)
+            setUpbitVolumeArray(upbitVolume)
+            setUpbitAxisArray(upbitAxis)
+
+            setChange(!change)
+        }
+    }
+
     return (
         <>
             <Line data={lineChart} options={LineOptions} />
+            <ChangeBtn onClick={handleChangeBtn}>{change ? "원화로 보기" : "등락률로 보기"}</ChangeBtn>
         </>
     )
 }

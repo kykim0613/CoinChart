@@ -31,8 +31,8 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     const [binanceAxisArray, setBinanceAxisArray] = useState([])
     const [change, setChange] = useState(false)
 
-    const [upbitCoins, setUpbitCoins] = useRecoilState(upbitCoinsArray)
-    const [binanceCoins, setBinanceCoins] = useRecoilState(binanceCoinsArray)
+    const [upbitCoins, setUpbitCoins] = useState([])
+    const [binanceCoins, setBinanceCoins] = useState([])
     const [loader, setLoader] = useRecoilState(loading)
 
     useEffect(() => {

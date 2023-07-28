@@ -16,16 +16,6 @@ export const Loader = styled.div`
     left: 0;
 `
 
-export const upbitCoinsArray = atom({
-    key: "upbit",
-    default: []
-})
-
-export const binanceCoinsArray = atom({
-    key: "binance",
-    default: []
-})
-
 export const loading = atom({
     key: "loader",
     default: false

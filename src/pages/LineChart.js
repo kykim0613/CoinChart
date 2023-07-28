@@ -55,19 +55,19 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                     setBinancePriceArray(binancePrice)
                     setBinanceVolumeArray(binanceVolume)
                     setBinanceAxisArray(binanceAxis)
-        
+
                     setUpBitPriceArray(upbitPrice)
                     setUpbitVolumeArray(upbitVolume)
                     setUpbitAxisArray(upbitAxis)
                 }
-        
+
                 if (change === false) {
                     const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
                     const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
                     setBinancePriceArray(binancePrice)
                     setBinanceVolumeArray(binanceVolume)
                     setBinanceAxisArray(binanceAxis)
-        
+
                     setUpBitPriceArray(upbitPrice)
                     setUpbitVolumeArray(upbitVolume)
                     setUpbitAxisArray(upbitAxis)
@@ -121,74 +121,70 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         return [priceList, volumeList, axisList];
     }
 
-    const groupedArray = (data) => {
-        const array = []
-        const dataLength = data.length
-
-        const closeTime = data.map((utc) => utc.t)
-
-        let count = 1
-        let timeRange = xAxis[count]
-        let groupedArray = [];
-
-        Array.prototype.max = function () {
-            return Math.max.apply(null, this)
+    /**
+     * 점 두개를 하나로 합치는 함수.
+     *
+     * @param m1 merge 할 데이터1
+     * 원본 객체로 들어오면 데이터가 변형되므로, clone 된 객체가 들어와야함.
+     * @param m2 merge 할 데이터2
+     * 원본 데이터가 들어와도 괜찮음. 참조만 함.
+     * @returns {*} merge 된 결과 return.
+     */
+    const merge = (m1, m2) => {
+        if (m1.t < m2.t) {
+            m1.cp = m2.cp
+        } else {
+            m1.op = m2.op
         }
+        m1.hp = Math.max(m1.hp, m2.hp)
+        m1.lp = Math.min(m1.lp, m2.lp)
+        m1.tv += m2.tv
+        m1.tp += m2.tp
+        m1.groupedCount++
+        return m1;
+    }
 
-        Array.prototype.min = function () {
-            return Math.min.apply(null, this)
-        }
-
-        for (let i = 0; i < dataLength; i++) {
-            const time = closeTime[i]
-
-            if (time < timeRange) {
-                groupedArray.push(data[i])
+    const groupedArray = (dataList) => {
+        const runTime = new Date();
+        const result = []
+        try {
+            if (!dataList || dataList.length <= 0) {
+                // dataList 빈껍질이면 빈 배열 return
+                return []
             }
 
-            if (timeRange <= time) {
-                array.push(groupedArray)
-                groupedArray = [data[i]]
-                if (i < dataLength) {
-                    timeRange = xAxis[count++]
+            const len = dataList.length
+            let p = Object.assign({}, dataList[0]) // 얕은 복사
+            p.t = xAxis[0]
+            p.groupedCount = 1;
+            let xAxisIdx = 1;
+
+            // dataList roof 돌면서 시간 확인하여 merge 작업.
+            for (let i = 1; i < len; i++) {
+                const time = dataList[i].t
+                if (time < xAxis[xAxisIdx]) {
+                    p = merge(p, dataList[i])
+                } else {
+                    result.push(p)
+                    p = Object.assign({}, dataList[i]) // 얕은 복사
+                    p.t = xAxis[xAxisIdx]
+                    p.groupedCount = 1;
+                    xAxisIdx++
                 }
-
-                if (i + 1 === dataLength) {
-                    timeRange = xAxis[i]
-                }
             }
-        }
-        if (groupedArray.length > 0) {
-            array.push(groupedArray)
-        }
+            // 마지막 값 result 에 push
+            result.push(p)
 
-        // 압축된 array안의 배열을 하나의 틱(객체)로 변환하는 for문
-        let result = []
-        const arrayLength = array.length
-
-        for (let i = 0; i < arrayLength; i++) {
-            const m = array[0].map((markets) => markets.m)
-            const op = array[i].map((onpeningPrice) => onpeningPrice.op)
-            const cp = array[i].map((closePrice) => closePrice.cp)
-            const hp = array[i].map((highPrice) => highPrice.hp)
-            const lp = array[i].map((lowPrice) => lowPrice.lp)
-            const tv = array[i].map((volume) => volume.tv)
-            const t = array[i].map((time) => time.t)
-
-            const tick = {
-                m: m[0],
-                op: op[0],
-                cp: cp[cp.length - 1],
-                hp: hp.max(),
-                lp: lp.min(),
-                tv: tv.reduce((a, b) => a + b, 0) / tv.length,
-                t: t[0]
+            // volume 값 평균 계산
+            for (let i = 0; i < result.length; i++) {
+                result[i].tv /= result[i].groupedCount;
+                result[i].tp /= result[i].groupedCount;
             }
-            result.push(tick)
+
+            return result
+        } finally {
+            console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
         }
-
-        return result
-
     }
 
     const length = xAxis.length

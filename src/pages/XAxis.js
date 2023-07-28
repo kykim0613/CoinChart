@@ -64,7 +64,7 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime, minBt
 
         xAxisSet.add(endDateTime); // 끝점 추가
         setXAxis(Array.from(xAxisSet));
-        console.log(`create xAxis Time:${new Date() - runTime}`)
+        console.log(`create xAxis Time:${new Date() - runTime}, Size:${xAxisSet.size}`)
     }
 
     const parseNumberTime = (numberTime) => {

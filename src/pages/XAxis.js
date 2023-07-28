@@ -15,7 +15,7 @@ const VolumeContainer = styled.div`
 
 const graphPointCount = 100;
 
-const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime }) => {
+const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime, minBtn }) => {
     const [xAxis, setXAxis] = useState([])
 
     useEffect(() => {
@@ -89,7 +89,15 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime }) => 
     return (
         <>
             <VolumeContainer>
-                <LineChart selectedStart={selectedStart} selectedEnd={selectedEnd} selected={selected} startTime={startTime} endTime={endTime} xAxis={xAxis} />
+                <LineChart
+                selectedStart={selectedStart}
+                selectedEnd={selectedEnd}
+                selected={selected}
+                startTime={startTime}
+                endTime={endTime}
+                xAxis={xAxis}
+                minBtn={minBtn}
+                />
             </VolumeContainer>
         </>
     )

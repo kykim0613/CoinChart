@@ -8,7 +8,7 @@ import { loading } from "../atom";
 Chart.register(zoomPlugin)
 
 
-const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, xAxis }) => {
+const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, xAxis, minBtn }) => {
 
     const [upbitCoins, setUpbitCoins] = useState([])
     const [binanceCoins, setBinanceCoins] = useState([])
@@ -61,8 +61,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
 
         fetchData()
     }, [xAxis])
-    
-    console.log(loader)
 
     const groupedArray = (data) => {
         const array = []
@@ -136,22 +134,36 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
 
     const axis = Array.from(new Set([...xAxis, ...upbitAxisArray, ...binanceAxisArray])).sort((a,b) => a - b)
 
+    const length = xAxis.length
+    const upbitLength = upbitAxisArray.length
+
     const makeAxis = (x, y) => {
         let result = []
-        const length = xAxis.length
 
         for (let i = 0; i < length; i++) {
             result.push({ x: x[i], y: y[i] })
         }
         return result
     }
+    const sortXaxis = () =>{
+        let result = []
+        for(let i = 0; i < length; i++){
+            for(let j = 0; j < upbitLength; j++){
+                if(xAxis[i] === upbitAxisArray[j]){
+                    result.push(xAxis[i])
+                    break
+                }
+            }
+        }
+        return result
+    }
 
     const lineChart = {
-        labels: axis,
+        labels: xAxis,
         datasets: [
             {
                 label: `Upbit`,
-                data: makeAxis(upbitAxisArray, upbitPriceArray),
+                data: makeAxis(minBtn ? sortXaxis() : xAxis, upbitPriceArray),
                 fill: false,
                 borderColor: '#005ca7',
                 backgroundColor: '#005ca7',
@@ -181,7 +193,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
             },
             {
                 label: `Upbit Volume`,
-                data: makeAxis(upbitAxisArray, upbitVolumeArray),
+                data: makeAxis(minBtn ? sortXaxis() : xAxis, upbitVolumeArray),
                 fill: false,
                 backgroundColor: 'rgba(0, 92, 167, 0.3)',
                 tension: 0.1,
@@ -245,6 +257,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         }
     }
 
+    
     return (
         <>
             <Line data={lineChart} options={LineOptions} />

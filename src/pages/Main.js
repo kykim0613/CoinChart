@@ -390,6 +390,7 @@ const Main = () => {
             startTime={startTime}
             endTime={endTime}
             timeCheck={timeCheck}
+            minBtn={minBtn}
         />
     );
 

@@ -29,7 +29,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     const [upbitVolumeArray, setUpbitVolumeArray] = useState([])
     const [upbitAxisArray, setUpbitAxisArray] = useState([])
     const [binanceAxisArray, setBinanceAxisArray] = useState([])
-    const [change, setChange] = useState(false)
+    const [change, setChange] = useState(true)
 
     const [upbitCoins, setUpbitCoins] = useState([])
     const [binanceCoins, setBinanceCoins] = useState([])
@@ -59,9 +59,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                     setUpBitPriceArray(upbitPrice)
                     setUpbitVolumeArray(upbitVolume)
                     setUpbitAxisArray(upbitAxis)
-                }
-
-                if (change === false) {
+                } else {
                     const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
                     const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
                     setBinancePriceArray(binancePrice)
@@ -180,7 +178,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
                 result[i].tv /= result[i].groupedCount;
                 result[i].tp /= result[i].groupedCount;
             }
-
             return result
         } finally {
             console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
@@ -220,7 +217,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         datasets: [
             {
                 label: `Upbit`,
-                data: makeAxis(minBtn ? sortXaxis() : xAxis, upbitPriceArray),
+                data: makeAxis(xAxis, upbitPriceArray),
                 fill: false,
                 borderColor: '#005ca7',
                 backgroundColor: '#005ca7',
@@ -246,7 +243,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
             },
             {
                 label: `Upbit Volume`,
-                data: makeAxis(minBtn ? sortXaxis() : xAxis, toFixedArray(upbitVolumeArray)),
+                data: makeAxis(xAxis, toFixedArray(upbitVolumeArray)),
                 fill: false,
                 backgroundColor: 'rgba(0, 92, 167, 0.3)',
                 tension: 0.1,

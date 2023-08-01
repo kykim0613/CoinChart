@@ -3,16 +3,11 @@ import { Bar, Line } from "react-chartjs-2";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { ListAPI } from "../api";
-import LineChart from "./LineChart";
 import XAxis from "./XAxis";
-import { useRecoilState } from "recoil";
-import { Loader, loading } from "../atom";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { Loader, blackMode, loading } from "../atom";
+import ModeBtn from "../components/ModeBtn";
 
-const DateInput = styled.input`
-    width:120px;
-    height:20px;
-    margin: 0 auto;
-`
 const Market = styled.h1`
     width: 100px;
     height: 50px;
@@ -26,6 +21,7 @@ const BtnContainer = styled.div`
     border-radius: 30px;
     text-align:center;
     line-height:30px;
+    background-color:white;
 `
 const Btn = styled.button`
     width: 30px;
@@ -33,8 +29,27 @@ const Btn = styled.button`
     border:none;
     border-radius: 30px;
     ${(props) => props.active && `border: 1px solid black`};
-    background: white;
     margin-left: 1px;
+    background-color:white;
+`
+const DateContainer = styled.div`
+    width: 100%;
+    text-align:center;
+`
+const DateInput = styled.input`
+    width:130px;
+    height:30px;
+    font-size: 16px;
+`
+
+const Controller = styled.button`
+    width: 60px;
+    height: 35px;
+    border: 1px solid #000;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 5px 0 5px;
+    font-size: 16px;
 `
 
 const Main = () => {
@@ -57,9 +72,8 @@ const Main = () => {
     const [endTimeInput, setEndTimeInput] = useState(``)
     const [selectedTime, setSelectedTime] = useState(100)
 
-    // const [hourInput, setHourInput] = useState(1)
-
     const [loader, setLoader] = useRecoilState(loading)
+    const mode = useRecoilValue(blackMode)
 
     let timeCheck = Date.now()
 
@@ -124,6 +138,12 @@ const Main = () => {
         setEndTimeInput('00:00')
     }
 
+    const loadeingFunc = (btn) => {
+        if (btn === false) {
+            setLoader(true)
+        }
+    }
+
     const handleMinBtn = () => {
         const selectedTime = 100
         setMinBtn(true)
@@ -134,7 +154,7 @@ const Main = () => {
         setSelectedTime(100)
         inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         timeCheck = Date.now()
-        setLoader(true)
+        loadeingFunc(minBtn)
     }
     const handleHourBtn = () => {
         const selectedTime = 100
@@ -146,7 +166,7 @@ const Main = () => {
         setSelectedTime(100)
         inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         timeCheck = Date.now()
-        setLoader(true)
+        loadeingFunc(hourBtn)
     }
     const handleDateBtn = () => {
         const selectedTime = 10000
@@ -159,7 +179,7 @@ const Main = () => {
         inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         fixTime()
         timeCheck = Date.now()
-        setLoader(true)
+        loadeingFunc(dateBtn)
     }
     const handleWeekBtn = () => {
         const selectedTime = 70000
@@ -172,7 +192,7 @@ const Main = () => {
         inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         fixTime()
         timeCheck = Date.now()
-        setLoader(true)
+        loadeingFunc(weekBtn)
     }
     const handleMonthBtn = () => {
         const selectedTime = 1000000
@@ -185,7 +205,7 @@ const Main = () => {
         inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
         fixTime()
         timeCheck = Date.now()
-        setLoader(true)
+        loadeingFunc(monthBtn)
     }
 
     // 코인 옵션
@@ -300,9 +320,135 @@ const Main = () => {
             setLoader(true)
         }
     }
-    
+
     // 누르면 일, 주, 월만큼 추가되는 버튼
-    const handlePlusBtn = () => {
+    const handleStartPlusBtn = () => {
+        const obj = new Date(startDateInput)
+        const hours = startTimeInput.slice(0, 2)
+        const mins = startTimeInput.slice(3)
+
+        const currentDate = new Date()
+        currentDate.setHours(hours)
+        currentDate.setMinutes(mins)
+
+        const timeObj = new Date(currentDate.getTime() + hour)
+        const hourObj = timeObj.getHours()
+        const minObj = timeObj.getMinutes()
+        const time = `${hourObj < 10 ? `0${hourObj}` : hourObj}:${minObj < 10 ? `0${minObj}` : minObj}`
+        const numTime = `${hourObj < 10 ? `0${hourObj}` : hourObj}${minObj < 10 ? `0${minObj}` : minObj}`
+
+        const dateObj = new Date(obj.getTime() + day)
+        const translateDate = toString(dateObj)
+
+        const weekObj = new Date(obj.getTime() + week)
+        const translateWeek = toString(weekObj)
+
+        const monthObj = new Date(obj.getFullYear(), obj.getMonth() + 1, obj.getDate())
+        const translateMonth = toString(monthObj)
+
+        if (hourBtn === true) {
+            if (Number(`${selectedStart}${numTime}`) < Number(`${selectedEnd}${endTime}`)) {
+                setStartTimeInput(time)
+                setStartTime(numTime)
+                setLoader(true)
+                // 시간이 0시를 지나갈 때 날짜 변경하는 부분
+                if (hourObj === 0) {
+                    setSelectedStart(sliceDatefunc(translateDate))
+                    setStartDateInput(translateDate)
+                }
+            } else {
+                alert("startTime은 endTime보다 클 수 없습니다.")
+            }
+        }
+
+        if (dateBtn === true) {
+            if (sliceDatefunc(translateDate) < selectedEnd) {
+                setSelectedStart(sliceDatefunc(translateDate))
+                setStartDateInput(translateDate)
+                setLoader(true)
+            } else {
+                alert("startDate은 endDate보다 클 수 없습니다.")
+            }
+        }
+
+        if (weekBtn === true) {
+            if (sliceDatefunc(translateWeek) < selectedEnd) {
+                setSelectedStart(sliceDatefunc(translateWeek))
+                setStartDateInput(translateWeek)
+                setLoader(true)
+            } else {
+                alert("startDate은 endDate보다 클 수 없습니다.")
+            }
+        }
+
+        if (monthBtn === true) {
+            if (sliceDatefunc(translateMonth) < selectedEnd) {
+                setSelectedStart(sliceDatefunc(translateMonth))
+                setStartDateInput(translateMonth)
+                setLoader(true)
+            } else {
+                alert("startDate은 endDate보다 클 수 없습니다.")
+            }
+        }
+    }
+
+    // 누르면 일, 주, 월만큼 빼는 버튼
+    const handleStartMinusBtn = () => {
+        const object = new Date(startDateInput)
+
+        const hours = startTimeInput.slice(0, 2)
+        const mins = startTimeInput.slice(3)
+
+        const currentDate = new Date()
+        currentDate.setHours(hours)
+        currentDate.setMinutes(mins)
+
+        const timeObj = new Date(currentDate.getTime() - hour)
+        const hourObj = timeObj.getHours()
+        const minObj = timeObj.getMinutes()
+        const time = `${hourObj < 10 ? `0${hourObj}` : hourObj}:${minObj < 10 ? `0${minObj}` : minObj}`
+        const numTime = `${hourObj < 10 ? `0${hourObj}` : hourObj}${minObj < 10 ? `0${minObj}` : minObj}`
+
+        const dateObj = new Date(object.getTime() - day)
+        const translateDate = toString(dateObj)
+
+        const weekObj = new Date(object.getTime() - week)
+        const translateWeek = toString(weekObj)
+
+        const monthObj = new Date(object.getFullYear(), object.getMonth() - 1, object.getDate())
+        const translateMonth = toString(monthObj)
+
+        if (hourBtn === true) {
+                setStartTimeInput(time)
+                setStartTime(numTime)
+                // 시간이 23시를 지나갈 때 날짜 변경하는 부분
+                if (hourObj === 23) {
+                    setSelectedStart(sliceDatefunc(translateDate))
+                    setStartDateInput(translateDate)
+            }
+            setLoader(true)
+        }
+
+        if (dateBtn === true) {
+            setSelectedStart(sliceDatefunc(translateDate))
+            setStartDateInput(translateDate)
+            setLoader(true)
+        }
+
+        if (weekBtn === true) {
+            setSelectedStart(sliceDatefunc(translateWeek))
+            setStartDateInput(translateWeek)
+            setLoader(true)
+        }
+
+        if (monthBtn === true) {
+            setSelectedStart(sliceDatefunc(translateMonth))
+            setStartDateInput(translateMonth)
+            setLoader(true)
+        }
+    }
+
+    const handleEndPlusBtn = () => {
         const obj = new Date(endDateInput)
         const hours = endTimeInput.slice(0, 2)
         const mins = endTimeInput.slice(3)
@@ -337,36 +483,29 @@ const Main = () => {
         }
 
         if (dateBtn === true) {
-            setSelectedStart(selectedEnd)
-            setStartDateInput(endDateInput)
             setSelectedEnd(sliceDatefunc(translateDate))
             setEndDateInput(translateDate)
             setLoader(true)
         }
 
         if (weekBtn === true) {
-            setSelectedStart(selectedEnd)
-            setStartDateInput(endDateInput)
             setSelectedEnd(sliceDatefunc(translateWeek))
             setEndDateInput(translateWeek)
             setLoader(true)
         }
 
         if (monthBtn === true) {
-            setSelectedStart(selectedEnd)
-            setStartDateInput(endDateInput)
             setSelectedEnd(sliceDatefunc(translateMonth))
             setEndDateInput(translateMonth)
             setLoader(true)
         }
     }
 
-    // 누르면 일, 주, 월만큼 빼는 버튼
-    const handleMinusBtn = () => {
-        const object = new Date(startDateInput)
+    const handleEndMinusBtn = () => {
+        const object = new Date(endDateInput)
 
-        const hours = startTimeInput.slice(0, 2)
-        const mins = startTimeInput.slice(3)
+        const hours = endTimeInput.slice(0, 2)
+        const mins = endTimeInput.slice(3)
 
         const currentDate = new Date()
         currentDate.setHours(hours)
@@ -388,37 +527,47 @@ const Main = () => {
         const translateMonth = toString(monthObj)
 
         if (hourBtn === true) {
-            setStartTimeInput(time)
-            setStartTime(numTime)
-            if (hourObj === 0) {
-                setSelectedStart(sliceDatefunc(translateDate))
-                setStartDateInput(translateDate)
+            if (Number(`${selectedStart}${startTime}`) < Number(`${selectedEnd}${numTime}`)){
+                setEndTimeInput(time)
+                setEndTime(numTime)
+                setLoader(true)
+                if (hourObj === 23) {
+                    setSelectedEnd(sliceDatefunc(translateDate))
+                    setEndDateInput(translateDate)
+                }
+            } else {
+                alert("endTime은 startTime보다 작을 수 없습니다.")
             }
-            setLoader(true)
         }
 
         if (dateBtn === true) {
-            setSelectedStart(sliceDatefunc(translateDate))
-            setStartDateInput(translateDate)
-            setSelectedEnd(selectedStart)
-            setEndDateInput(startDateInput)
-            setLoader(true)
+            if (selectedStart < sliceDatefunc(translateDate)){
+                setSelectedEnd(sliceDatefunc(translateDate))
+                setEndDateInput(translateDate)
+                setLoader(true)
+            } else {
+                alert("endDate는 startDate보다 작을 수 없습니다.")
+            }
         }
 
         if (weekBtn === true) {
-            setSelectedStart(sliceDatefunc(translateWeek))
-            setStartDateInput(translateWeek)
-            setSelectedEnd(selectedStart)
-            setEndDateInput(startDateInput)
-            setLoader(true)
+            if (selectedStart < sliceDatefunc(translateWeek)) {
+                setSelectedEnd(sliceDatefunc(translateWeek))
+                setEndDateInput(translateWeek)
+                setLoader(true)
+            } else {
+                alert("endDate는 startDate보다 작을 수 없습니다.")
+            }
         }
 
         if (monthBtn === true) {
-            setSelectedStart(sliceDatefunc(translateMonth))
-            setStartDateInput(translateMonth)
-            setSelectedEnd(selectedStart)
-            setEndDateInput(startDateInput)
-            setLoader(true)
+            if (selectedStart < sliceDatefunc(translateMonth)) {
+                setSelectedEnd(sliceDatefunc(translateMonth))
+                setEndDateInput(translateMonth)
+                setLoader(true)
+            } else {
+                alert("endDate는 startDate보다 작을 수 없습니다.")
+            }
         }
     }
 
@@ -448,7 +597,7 @@ const Main = () => {
     }
 
     const handleHourInput = (e) => {
-        if(e.target.value < 10){
+        if (e.target.value < 10) {
             setHourInput(e.target.value)
         } else {
             alert("10 미만을 입력해주세요.")
@@ -485,59 +634,71 @@ const Main = () => {
             <Market>
                 {selected}
             </Market>
-            <DateInput
-                value={startDateInput}
-                onChange={handleDateStart}
-                type="date"
-            />
-            -
-            <DateInput
-                value={endDateInput}
-                onChange={handleDateEnd}
-                type="date"
-            />
-            <br />
-            <DateInput
-                value={startTimeInput}
-                onChange={handleTimeStart}
-                type="time"
-                disabled={dateBtn || weekBtn || monthBtn}
-            />
-            -
-            <DateInput
-                value={endTimeInput}
-                onChange={handleTimeEnd}
-                type="time"
-                disabled={dateBtn || weekBtn || monthBtn}
-            />
-            <br />
-             
-            {
-            //1시간뿐만 아니라 사용자가 시간을 지정하고 그 시간만큼 뒤로 가고 앞으로 가는 버튼 제작
-            /* <DateInput
-            type="number"
-            onChange={handleHourInput}
-            value={hourInput}
-            disabled={minBtn || dateBtn || weekBtn || monthBtn}
-            /> */}
-            <button
-                disabled={minBtn}
-                onClick={handleMinusBtn}
-            >
-                ◀
-            </button>
-            <button
-                disabled={minBtn}
-                onClick={handlePlusBtn}
-            >
-                ▶
-            </button>
+            <DateContainer>
+                <DateInput
+                    value={startDateInput}
+                    onChange={handleDateStart}
+                    type="date"
+                />
+                -
+                <DateInput
+                    value={endDateInput}
+                    onChange={handleDateEnd}
+                    type="date"
+                />
+                <br />
+                <DateInput
+                    value={startTimeInput}
+                    onChange={handleTimeStart}
+                    type="time"
+                    disabled={dateBtn || weekBtn || monthBtn}
+                />
+                -
+                <DateInput
+                    value={endTimeInput}
+                    onChange={handleTimeEnd}
+                    type="time"
+                    disabled={dateBtn || weekBtn || monthBtn}
+                />
+                <br />
+                <Controller
+                    active={mode}
+                    disabled={minBtn}
+                    onClick={handleStartMinusBtn}
+                >
+                    ◀
+                </Controller>
+                <Controller
+                    active={mode}
+                    disabled={minBtn}
+                    onClick={handleStartPlusBtn}
+                >
+                    ▶
+                </Controller>
+                -
+                <Controller
+                    active={mode}
+                    disabled={minBtn}
+                    onClick={handleEndMinusBtn}
+                >
+                    ◀
+                </Controller>
+                <Controller
+                    active={mode}
+                    disabled={minBtn}
+                    onClick={handleEndPlusBtn}
+                >
+                    ▶
+                </Controller>
+            </DateContainer>
             <br />
             {minBtn && tickComponent}
             {hourBtn && tickComponent}
             {dateBtn && tickComponent}
             {weekBtn && tickComponent}
             {monthBtn && tickComponent}
+            <br />
+            <ModeBtn />
         </>
     )
 }

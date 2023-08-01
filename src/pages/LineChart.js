@@ -3,8 +3,8 @@ import { Bar, Line } from "react-chartjs-2"
 import { binanceCandlesAPI, upbitCandlesAPI } from "../api"
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import { useRecoilState } from "recoil";
-import { binanceCoinsArray, loading, upbitCoinsArray } from "../atom";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { binanceCoinsArray, blackMode, loading, upbitCoinsArray } from "../atom";
 import styled from "styled-components";
 Chart.register(zoomPlugin)
 
@@ -13,16 +13,16 @@ const ChangeBtn = styled.button`
     height: 40px;
     border: none;
     border-radius: 30px;
-    background-color: #333;
-    color: white;
-    :active {
-        background-color: #555
+    color: ${(props) => props.active ? "#333" : "#fff"};
+    background-color: ${(props) => props.active ? "#ddd" : "#333"};
+    cursor: pointer;
+    :hover {
+        background-color: ${(props) => props.active ? "#ccc" : "#555"};;
     }
 `
 
 
 const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, xAxis, minBtn }) => {
-
     const [binancePriceArray, setBinancePriceArray] = useState([])
     const [binanceVolumeArray, setBinanceVolumeArray] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
@@ -34,6 +34,8 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     const [upbitCoins, setUpbitCoins] = useState([])
     const [binanceCoins, setBinanceCoins] = useState([])
     const [loader, setLoader] = useRecoilState(loading)
+    const mode = useRecoilValue(blackMode)
+    Chart.defaults.color = `${mode ? "#ddd" : "#333"}`
 
     useEffect(() => {
         const fetchData = async () => {
@@ -195,18 +197,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         }
         return result
     }
-    const sortXaxis = () => {
-        let result = []
-        for (let i = 0; i < length; i++) {
-            for (let j = 0; j < upbitLength; j++) {
-                if (xAxis[i] === upbitAxisArray[j]) {
-                    result.push(xAxis[i])
-                    break
-                }
-            }
-        }
-        return result
-    }
 
     const toFixedArray = (array) => {
         return array.map((fix) => fix.toFixed(0))
@@ -294,7 +284,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
             },
             tooltip: {
                 enabled: true,
-                backgroundColor: `#333`,
                 callbacks: {
                     label: function (context) {
                         if (change === true) {
@@ -328,7 +317,6 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
             setUpbitAxisArray(upbitAxis)
 
             setChange(!change)
-
         }
 
         if (change === true) {
@@ -349,7 +337,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     return (
         <>
             <Line data={lineChart} options={LineOptions} />
-            <ChangeBtn onClick={handleChangeBtn}>{change ? "원화로 보기" : "등락률로 보기"}</ChangeBtn>
+            <ChangeBtn active={mode} onClick={handleChangeBtn}>{change ? "원화로 보기" : "등락률로 보기"}</ChangeBtn>
         </>
     )
 }

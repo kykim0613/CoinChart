@@ -10,17 +10,38 @@ const VolumeContainer = styled.div`
   width: 100vh;
   position: absolute;
   left: 50%;
-  transform: translateX(-50%)
+  transform: translateX(-50%);
 `
 
-const graphPointCount = 100;
+const XAxisInput = styled.input`
+    width: 100px;
+    height: 25px;
+    outline: none;
+    font-size: 14px;
+`
+
+const SubmitBtn = styled.button`
+    width: 80px;
+    height: 30px;
+    border: none;
+    color: #fff;
+    background-color: #111;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+    :hover {
+        background-color: #444;
+    }
+`
 
 const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime, minBtn }) => {
     const [xAxis, setXAxis] = useState([])
+    const [pointCount, setPointCount] = useState(100)
 
     useEffect(() => {
         createXAxis();
-    },[selected, selectedStart, selectedEnd, startTime, endTime])
+        setBooleanBtn(false)
+    }, [selected, selectedStart, selectedEnd, startTime, endTime])
 
     function createXAxis() {
         const runTime = new Date();
@@ -43,9 +64,9 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime, minBt
         // 그래프상 점과 점 사이의 간격을 구함.
         // 단위는 분.
         // 1보다 작지 않도록 조정
-        // 시작점과 끝점을 강제로 넣기 때문에 graphPointCount 에서 1을 빼줌
-        const interval = Math.max(totalMinute / (graphPointCount - 1), 1);
-        // console.log(`totalMinute:${totalMinute}, graphPointCount:${graphPointCount}, interval:${interval}`)
+        // 시작점과 끝점을 강제로 넣기 때문에 pointCount 에서 1을 빼줌
+        const interval = Math.max(totalMinute / (pointCount - 1), 1);
+        // console.log(`totalMinute:${totalMinute}, pointCount:${pointCount}, interval:${interval}`)
 
         const xAxisSet = new Set();
         xAxisSet.add(startDateTime); // 시작점 추가
@@ -84,19 +105,34 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime, minBt
             + tempDate.getMinutes();
     }
 
+    const handleInputChange = (e) => {
+        const value = e.target.value;
 
+        const filteredValue = value.replace(/[^0-9]/g, '');
+        setPointCount(filteredValue);
+    }
+
+    const handleSubmitBtn = () => {
+
+    }
 
     return (
         <>
             <VolumeContainer>
+                X축 <XAxisInput
+                    value={pointCount}
+                    type="text"
+                    onChange={handleInputChange}
+                />
+                <SubmitBtn onClick={handleSubmitBtn}>가져오기</SubmitBtn>
                 <LineChart
-                selectedStart={selectedStart}
-                selectedEnd={selectedEnd}
-                selected={selected}
-                startTime={startTime}
-                endTime={endTime}
-                xAxis={xAxis}
-                minBtn={minBtn}
+                    selectedStart={selectedStart}
+                    selectedEnd={selectedEnd}
+                    selected={selected}
+                    startTime={startTime}
+                    endTime={endTime}
+                    xAxis={xAxis}
+                    pointCount={pointCount}
                 />
             </VolumeContainer>
         </>

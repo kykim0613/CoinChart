@@ -6,7 +6,7 @@ const Btn = styled.button`
     width: 180px;
     height: 60px;
     color: ${(props) => props.active ? "#333" : "#fff"};
-    background-color: ${(props) => props.active ? "#ddd" : "#333"};
+    background-color: ${(props) => props.active ? "#eee" : "#333"};
     position: fixed;
     bottom: 5%;
     right: 5%;

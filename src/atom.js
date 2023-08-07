@@ -17,5 +17,10 @@ export const loading = atom({
 
 export const blackMode = atom({
     key: "mode",
-    default: false
+    default: true
+})
+
+export const pointCount = atom({
+    key: "count",
+    default: 100
 })

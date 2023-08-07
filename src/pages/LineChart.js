@@ -14,15 +14,28 @@ const ChangeBtn = styled.button`
     border: none;
     border-radius: 30px;
     color: ${(props) => props.active ? "#333" : "#fff"};
-    background-color: ${(props) => props.active ? "#ddd" : "#333"};
+    background-color: ${(props) => props.active ? "#eee" : "#333"};
     cursor: pointer;
     :hover {
         background-color: ${(props) => props.active ? "#ccc" : "#555"};;
     }
 `
+const SubmitBtn = styled.button`
+    width: 80px;
+    height: 30px;
+    border: none;
+    color: ${(props) => props.active ? "#333" : "#fff"};
+    background-color: ${(props) => props.active ? "#eee" : "#333"};
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+    :hover {
+        background-color: ${(props) => props.active ? "#ccc" : "#555"};
+    }
+`
 
 
-const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, xAxis, minBtn }) => {
+const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, xAxis, pointCount }) => {
     const [binancePriceArray, setBinancePriceArray] = useState([])
     const [binanceVolumeArray, setBinanceVolumeArray] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
@@ -38,50 +51,50 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
     Chart.defaults.color = `${mode ? "#ddd" : "#333"}`
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [data1, data2] = await Promise.all([
-                    binanceCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime),
-                    upbitCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
-                ])
-
-                const dataArray1 = groupedArray(data1)
-                const dataArray2 = groupedArray(data2)
-
-                setBinanceCoins(dataArray1)
-                setUpbitCoins(dataArray2)
-
-                if (change === true) {
-                    const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, true, null)
-                    const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, true, null);
-                    setBinancePriceArray(binancePrice)
-                    setBinanceVolumeArray(binanceVolume)
-                    setBinanceAxisArray(binanceAxis)
-
-                    setUpBitPriceArray(upbitPrice)
-                    setUpbitVolumeArray(upbitVolume)
-                    setUpbitAxisArray(upbitAxis)
-                } else {
-                    const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
-                    const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
-                    setBinancePriceArray(binancePrice)
-                    setBinanceVolumeArray(binanceVolume)
-                    setBinanceAxisArray(binanceAxis)
-
-                    setUpBitPriceArray(upbitPrice)
-                    setUpbitVolumeArray(upbitVolume)
-                    setUpbitAxisArray(upbitAxis)
-                }
-
-                setLoader(false)
-
-            } catch (error) {
-                console.log(error)
-            }
-        }
-
         fetchData()
     }, [xAxis])
+
+    const fetchData = async () => {
+        try {
+            const [data1, data2] = await Promise.all([
+                binanceCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime),
+                upbitCandlesAPI(selected, selectedStart, selectedEnd, startTime, endTime)
+            ])
+
+            const dataArray1 = groupedArray(data1)
+            const dataArray2 = groupedArray(data2)
+
+            setBinanceCoins(dataArray1)
+            setUpbitCoins(dataArray2)
+
+            if (change === true) {
+                const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, true, null)
+                const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, true, null);
+                setBinancePriceArray(binancePrice)
+                setBinanceVolumeArray(binanceVolume)
+                setBinanceAxisArray(binanceAxis)
+
+                setUpBitPriceArray(upbitPrice)
+                setUpbitVolumeArray(upbitVolume)
+                setUpbitAxisArray(upbitAxis)
+            } else {
+                const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
+                const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
+                setBinancePriceArray(binancePrice)
+                setBinanceVolumeArray(binanceVolume)
+                setBinanceAxisArray(binanceAxis)
+
+                setUpBitPriceArray(upbitPrice)
+                setUpbitVolumeArray(upbitVolume)
+                setUpbitAxisArray(upbitAxis)
+            }
+
+            setLoader(false)
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     /**
      *
@@ -207,7 +220,7 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
         datasets: [
             {
                 label: `Upbit`,
-                data: makeAxis(xAxis, upbitPriceArray),
+                data: makeAxis(upbitAxisArray, upbitPriceArray),
                 fill: false,
                 borderColor: '#005ca7',
                 backgroundColor: '#005ca7',
@@ -332,6 +345,10 @@ const LineChart = ({ selectedStart, selectedEnd, selected, startTime, endTime, x
 
             setChange(!change)
         }
+    }
+
+    const handleSubmitBtn = () => {
+        fetchData()
     }
 
     return (

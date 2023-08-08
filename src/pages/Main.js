@@ -574,6 +574,8 @@ const Main = () => {
                 setStartTime(endTime)
                 setEndTimeInput(time)
                 setEndTime(numTime)
+                setStartDateInput(endDateInput)
+                setSelectedStart(selectedEnd)
                 if (hourObj === 0) {
                     setSelectedStart(selectedEnd)
                     setStartDateInput(endDateInput)
@@ -634,6 +636,8 @@ const Main = () => {
                 setStartTime(numTime)
                 setEndTimeInput(startTimeInput)
                 setEndTime(startTime)
+                setEndDateInput(startDateInput)
+                setSelectedEnd(selectedStart)
                 if (hourObj === 23) {
                     setSelectedStart(sliceDatefunc(translateDate))
                     setStartDateInput(translateDate)

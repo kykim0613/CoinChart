@@ -20,7 +20,7 @@ export const blackMode = atom({
     default: true
 })
 
-export const pointCount = atom({
+export const selectedValue = atom({
     key: "count",
     default: 100
 })

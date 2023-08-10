@@ -4,8 +4,8 @@ import styled from "styled-components"
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import LineChart from "./LineChart";
-import { useRecoilValue } from "recoil";
-import { selectedValue } from "../atom";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { blackMode, loading } from "../atom";
 Chart.register(zoomPlugin)
 
 const VolumeContainer = styled.div`
@@ -15,24 +15,47 @@ const VolumeContainer = styled.div`
   transform: translateX(-50%);
 `
 
-const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime }) => {
+const SliderBar = styled.input`
+    width: 200px;
+    height: 10px;
+    appearance: none;
+    border-radius: 5px;
+    background: ${(props) => props.active ? "#ccc" : "#555"};
+    cursor: pointer;
+    &::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px; /* 버튼 크기 조정 */
+        height: 20px; /* 버튼 크기 조정 */
+        background: ${(props) => props.active ? "#eee" : "#333"};
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+      }
+`
+
+const XAxis = ({ selected, start, end }) => {
     const [xAxis, setXAxis] = useState([])
-    const value = useRecoilValue(selectedValue)
+    const [rerendering, setRerendering] = useState([])
+    const mode = useRecoilValue(blackMode)
+    const [value, setValue] = useState(100)
+    const [loader, setLoader] = useRecoilState(loading)
+
+    // yyyymmddhhmmss 형태로 만듬.
 
     useEffect(() => {
-        createXAxis();
-    }, [selected, selectedStart, selectedEnd, startTime, endTime, value])
+        createXAxis(start, end);
+    }, [selected, start, end])
 
-    function createXAxis() {
+    useEffect(() => {
+        rerenderingXAxis(start, end)
+    }, [value])
+
+    function createXAxis(start, end) {
         const runTime = new Date();
 
-        // yyyymmddhhmmss 형태로 만듬.
-        const startDateTime = Number(selectedStart) * 10000 + Number(startTime);
-        const endDateTime = Number(selectedEnd) * 10000 + Number(endTime);
-
         // year, month, day, hour, min 으로 쪼갬
-        const st = parseNumberTime(startDateTime);
-        const et = parseNumberTime(endDateTime);
+        const st = parseNumberTime(start);
+        const et = parseNumberTime(end);
 
         // date 객체로 만듬.
         const startDate = new Date(st.year, st.month - 1, st.day, st.hour, st.min);
@@ -49,7 +72,7 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime }) => 
         // console.log(`totalMinute:${totalMinute}, value:${value}, interval:${interval}`)
 
         const xAxisSet = new Set();
-        xAxisSet.add(startDateTime); // 시작점 추가
+        xAxisSet.add(start); // 시작점 추가
 
         let tempMinute = 0;
         let tempDate = startDate;
@@ -58,14 +81,56 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime }) => 
             tempDate.setMinutes(startDate.getMinutes() + Math.ceil(tempMinute += interval));
 
             const tempNumberDate = dateToNumberDate(tempDate);
-            if (tempNumberDate < endDateTime) {
+            if (tempNumberDate < end) {
                 xAxisSet.add(tempNumberDate);
             }
         }
 
-        xAxisSet.add(endDateTime); // 끝점 추가
+        xAxisSet.add(end); // 끝점 추가
         setXAxis(Array.from(xAxisSet));
+        setRerendering(Array.from(xAxisSet))
         console.log(`create xAxis Time:${new Date() - runTime}, Size:${xAxisSet.size}`)
+    }
+
+    function rerenderingXAxis(start, end) {
+        const runTime = new Date();
+
+        // year, month, day, hour, min 으로 쪼갬
+        const st = parseNumberTime(start);
+        const et = parseNumberTime(end);
+
+        // date 객체로 만듬.
+        const startDate = new Date(st.year, st.month - 1, st.day, st.hour, st.min);
+        const endDate = new Date(et.year, et.month - 1, et.day, et.hour, et.min);
+
+        // 기간의 전체 분을 구함
+        const totalMinute = (endDate - startDate) / (60 * 1000);
+
+        // 그래프상 점과 점 사이의 간격을 구함.
+        // 단위는 분.
+        // 1보다 작지 않도록 조정
+        // 시작점과 끝점을 강제로 넣기 때문에 value 에서 1을 빼줌
+        const interval = Math.max(totalMinute / (value - 1), 1);
+        // console.log(`totalMinute:${totalMinute}, value:${value}, interval:${interval}`)
+
+        const xAxisSet = new Set();
+        xAxisSet.add(start); // 시작점 추가
+
+        let tempMinute = 0;
+        let tempDate = startDate;
+        while (tempDate < endDate) {
+            tempDate = new Date(startDate.getTime());
+            tempDate.setMinutes(startDate.getMinutes() + Math.ceil(tempMinute += interval));
+
+            const tempNumberDate = dateToNumberDate(tempDate);
+            if (tempNumberDate < end) {
+                xAxisSet.add(tempNumberDate);
+            }
+        }
+
+        xAxisSet.add(end); // 끝점 추가
+        setRerendering(Array.from(xAxisSet))
+        console.log(`rerendering xAxis Time:${new Date() - runTime}, Size:${xAxisSet.size}`)
     }
 
     const parseNumberTime = (numberTime) => {
@@ -85,21 +150,34 @@ const XAxis = ({ selected, selectedStart, selectedEnd, startTime, endTime }) => 
             + tempDate.getMinutes();
     }
 
+    const handleSliderBar = (e) => {
+        setLoader(true)
+        setValue(e.target.value)
+    }
 
-return (
-    <>
-        <VolumeContainer>
-            <LineChart
-                selectedStart={selectedStart}
-                selectedEnd={selectedEnd}
-                selected={selected}
-                startTime={startTime}
-                endTime={endTime}
-                xAxis={xAxis}
-            />
-        </VolumeContainer>
-    </>
-)
+    return (
+        <>
+            <VolumeContainer>
+                <SliderBar
+                    active={mode}
+                    type="range"
+                    min="1"
+                    max="1000"
+                    step="1"
+                    value={value}
+                    onChange={handleSliderBar}
+                />
+                {value}
+                <LineChart
+                    start={start}
+                    end={end}
+                    selected={selected}
+                    xAxis={xAxis}
+                    rerendering={rerendering}
+                />
+            </VolumeContainer>
+        </>
+    )
 }
 
 export default XAxis;

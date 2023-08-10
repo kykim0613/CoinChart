@@ -21,6 +21,24 @@ const ChangeBtn = styled.button`
     }
 `
 
+const SliderBar = styled.input`
+    width: 200px;
+    height: 10px;
+    appearance: none;
+    border-radius: 5px;
+    background: ${(props) => props.active ? "#ccc" : "#555"};
+    cursor: pointer;
+    &::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px; /* 버튼 크기 조정 */
+        height: 20px; /* 버튼 크기 조정 */
+        background: ${(props) => props.active ? "#eee" : "#333"};
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+      }
+`
+
 
 const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
     const [binancePriceArray, setBinancePriceArray] = useState([])
@@ -34,19 +52,20 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
     const [binance, setBinance] = useState([])
     const [upbit, setUpbit] = useState([])
     const [loader, setLoader] = useRecoilState(loading)
+    const [value, setValue] = useRecoilState(selectedValue)
     const mode = useRecoilValue(blackMode)
 
     Chart.defaults.color = `${mode ? "#ddd" : "#333"}`
 
+    //api 호출
     useEffect(() => {
         fetchData(selected, start, end)
     }, [xAxis])
 
+    //호출된 api가 저장됐을 때 실행 or x축만 변경되었을 때 실행
     useEffect(() => {
         dataRerendering(binance, upbit)
-    },[upbit, binance, rerendering])
-
-    console.log(upbit)
+    }, [upbit, binance, rerendering])
 
     const fetchData = async (selected, start, end) => {
         try {
@@ -64,11 +83,13 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
 
     const dataRerendering = async (data1, data2) => {
         try {
+            //병렬로 groupedArray 실행
             const [dataArray1, dataArray2] = await Promise.all([
                 groupedArray(data1),
                 groupedArray(data2)
             ])
-            
+
+            //세 가지 값 리턴
             transArray(dataArray1, dataArray2)
 
         } catch (error) {
@@ -98,7 +119,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
             setUpBitPriceArray(upbitPrice)
             setUpbitVolumeArray(upbitVolume)
             setUpbitXAxisArray(upbitAxis)
-        } 
+        }
         setLoader(false)
     }
 
@@ -207,7 +228,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
 
     const upbitLength = upbit.length
     const binanceLength = binance.length
-
+    //upbit 좌표 생성 함수
     const upbitXAxis = (x, y) => {
         let result = []
 
@@ -217,7 +238,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
 
         return result
     }
-
+    //binance 좌표 생성 함수
     const binanceXAxis = (x, y) => {
         let result = []
 
@@ -367,8 +388,24 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
         }
     }
 
+    const handleSliderBar = (e) => {
+        setLoader(true)
+        setValue(e.target.value)
+    }
+
+
     return (
         <>
+            <SliderBar
+                active={mode}
+                type="range"
+                min="1"
+                max="1000"
+                step="1"
+                value={value}
+                onChange={handleSliderBar}
+            />
+            {value}
             <Line data={lineChart} options={LineOptions} />
             <ChangeBtn active={mode} onClick={handleChangeBtn}>{change ? "원화로 보기" : "등락률로 보기"}</ChangeBtn>
         </>

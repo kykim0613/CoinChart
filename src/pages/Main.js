@@ -1,6 +1,6 @@
 import { CategoryScale, Chart as ChartJS, Legend, LineElement, LinearScale, PointElement, Title, Tooltip } from "chart.js/auto";
 import { Bar, Line } from "react-chartjs-2";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { ListAPI } from "../api";
 import XAxis from "./XAxis";
@@ -818,4 +818,4 @@ const Main = () => {
     )
 }
 
-export default Main;
+export default React.memo(Main);

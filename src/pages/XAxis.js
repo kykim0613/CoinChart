@@ -1,12 +1,8 @@
 import React, { useEffect, useState } from "react"
-import { Bar, Line } from "react-chartjs-2"
 import styled from "styled-components"
-import { Chart } from 'chart.js';
-import zoomPlugin from 'chartjs-plugin-zoom';
 import LineChart from "./LineChart";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { blackMode, loading, selectedValue } from "../atom";
-Chart.register(zoomPlugin)
+import { loading, selectedValue } from "../atom";
 
 const VolumeContainer = styled.div`
   width: 100vh;
@@ -103,7 +99,6 @@ const XAxis = ({ selected, start, end }) => {
         }
 
         xAxisSet.add(end);
-        setXAxis(Array.from(xAxisSet));
         setRerendering(Array.from(xAxisSet))
         console.log(`rerendering xAxis Time:${new Date() - runTime}, Size:${xAxisSet.size}`)
     }
@@ -125,11 +120,6 @@ const XAxis = ({ selected, start, end }) => {
             + tempDate.getMinutes();
     }
 
-    const handleSliderBar = (e) => {
-        setLoader(true)
-        setValue(e.target.value)
-    }
-
     return (
         <>
             <VolumeContainer>
@@ -145,4 +135,4 @@ const XAxis = ({ selected, start, end }) => {
     )
 }
 
-export default XAxis;
+export default React.memo(XAxis);

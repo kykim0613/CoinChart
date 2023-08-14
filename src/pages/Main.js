@@ -707,6 +707,7 @@ const Main = () => {
             start={start}
             end={end}
             minBtn={minBtn}
+            hourBtn={hourBtn}
         />
     );
 

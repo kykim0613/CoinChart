@@ -40,7 +40,7 @@ const SliderBar = styled.input`
 `
 
 
-const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
+const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }) => {
     const [binancePriceArray, setBinancePriceArray] = useState([])
     const [binanceVolumeArray, setBinanceVolumeArray] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
@@ -85,11 +85,9 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
     const dataRerendering = async (binance, upbit) => {
         const timeCheck = new Date()
         try {
-            //병렬로 groupedArray 실행
-            const [dataArray1, dataArray2] = await Promise.all([
-                groupedArray(binance),
-                groupedArray(upbit)
-            ])
+
+            const dataArray1 = groupedArray(binance)
+            const dataArray2 = groupedArray(upbit)
 
             //세 가지 값 리턴
             transArray(dataArray1, dataArray2)
@@ -191,6 +189,8 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
         return m1;
     }
 
+    // data를 merge할 때 x축 기준으로 순서대로 푸시하는데 60분에 좌표가 45개라서 문제가 발생. (06분~50분)
+    // 따라서 분과 시의 경우에는 if else로 나눠 따로 처리해줌
     const groupedArray = (dataList) => {
         const runTime = new Date();
         const result = []
@@ -207,16 +207,31 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
             let xAxisIdx = 1;
 
             // dataList roof 돌면서 시간 확인하여 merge 작업.
-            for (let i = 1; i < len; i++) {
-                const time = dataList[i].t
-                if (time < rerendering[xAxisIdx]) {
-                    p = merge(p, dataList[i])
-                } else {
-                    result.push(p)
-                    p = Object.assign({}, dataList[i]) // 얕은 복사
-                    p.t = rerendering[xAxisIdx]
-                    p.groupedCount = 1;
-                    xAxisIdx++
+            if (minBtn || hourBtn) {
+                for (let i = 1; i < len; i++) {
+                    const time = dataList[i].t
+                    if (time < rerendering[xAxisIdx]) {
+                        p = merge(p, dataList[i])
+                    } else {
+                        result.push(p)
+                        p = Object.assign({}, dataList[i]) // 얕은 복사
+                        p.t = dataList[xAxisIdx].t
+                        p.groupedCount = 1;
+                        xAxisIdx++
+                    }
+                }
+            } else {
+                for (let i = 1; i < len; i++) {
+                    const time = dataList[i].t
+                    if (time < rerendering[xAxisIdx]) {
+                        p = merge(p, dataList[i])
+                    } else {
+                        result.push(p)
+                        p = Object.assign({}, dataList[i]) // 얕은 복사
+                        p.t = rerendering[xAxisIdx]
+                        p.groupedCount = 1;
+                        xAxisIdx++
+                    }
                 }
             }
             // 마지막 값 result 에 push
@@ -377,8 +392,8 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
 
     const handleChangeBtn = () => {
         if (change === false) {
-            const [binancePrice, binanceVolume, binanceAxis] = sepLists(binance, true, null)
-            const [upbitPrice, upbitVolume, upbitAxis] = sepLists(upbit, true, null);
+            const [binancePrice, binanceVolume, binanceAxis] = sepLists(groupedArray(binance), true, null)
+            const [upbitPrice, upbitVolume, upbitAxis] = sepLists(groupedArray(upbit), true, null);
             setBinancePriceArray(binancePrice)
             setBinanceVolumeArray(binanceVolume)
             setBinanceAxisArray(binanceAxis)
@@ -418,7 +433,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering }) => {
                 active={mode}
                 type="range"
                 min="1"
-                max="1000"
+                max="300"
                 step="1"
                 value={value}
                 onChange={handleSliderBar}

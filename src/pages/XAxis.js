@@ -11,7 +11,7 @@ const VolumeContainer = styled.div`
   transform: translateX(-50%);
 `
 
-const XAxis = ({ selected, start, end }) => {
+const XAxis = ({ selected, start, end, minBtn, hourBtn }) => {
     const [xAxis, setXAxis] = useState([])
     const [rerendering, setRerendering] = useState([])
     const value = useRecoilValue(selectedValue)
@@ -129,6 +129,8 @@ const XAxis = ({ selected, start, end }) => {
                     selected={selected}
                     xAxis={xAxis}
                     rerendering={rerendering}
+                    minBtn={minBtn}
+                    hourBtn={hourBtn}
                 />
             </VolumeContainer>
         </>

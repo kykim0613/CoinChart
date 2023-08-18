@@ -82,10 +82,8 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
         }
     }
 
-    const dataRerendering = async (binance, upbit) => {
+    const dataRerendering = (binance, upbit) => {
         const timeCheck = new Date()
-        try {
-
             const dataArray1 = groupedArray(binance)
             const dataArray2 = groupedArray(upbit)
 
@@ -93,9 +91,6 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
             transArray(dataArray1, dataArray2)
             setLoader(false)
             console.log(`dataRendering runTime: ${new Date() - timeCheck}`)
-        } catch (error) {
-            console.log(error)
-        }
     }
 
     const transArray = (dataArray1, dataArray2) => {
@@ -110,7 +105,6 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
             setUpBitPriceArray(upbitPrice)
             setUpbitVolumeArray(upbitVolume)
             setUpbitAxisArray(upbitAxis)
-            console.log(upbitPrice)
         } else {
             const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
             const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
@@ -152,7 +146,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
                 priceList.push(Math.round(((node.cp / firstPrice) - 1) * 10000) / 100);
                 volumeList.push(node.tv);
                 axisList.push(node.t);
-            }
+            }  
         } else {
             for (let i = 0; i < len; i++) {
                 const node = data[i];
@@ -206,6 +200,10 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
             p.groupedCount = 1;
             let xAxisIdx = 1;
 
+            //버그 수정중
+            const timeList = dataList.map((time) => time.t)
+            const list = rerendering.filter((element) => timeList.includes(element))
+            console.log(list, rerendering)
             // dataList roof 돌면서 시간 확인하여 merge 작업.
             if (minBtn || hourBtn) {
                 for (let i = 1; i < len; i++) {
@@ -215,7 +213,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
                     } else {
                         result.push(p)
                         p = Object.assign({}, dataList[i]) // 얕은 복사
-                        p.t = dataList[xAxisIdx].t
+                        p.t = list[xAxisIdx]
                         p.groupedCount = 1;
                         xAxisIdx++
                     }
@@ -242,8 +240,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
                 result[i].tv /= result[i].groupedCount;
                 result[i].tp /= result[i].groupedCount;
             }
-            console.log(result)
-            return result
+            return minBtn ? result : result
         } finally {
             console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
         }
@@ -432,7 +429,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
             <SliderBar
                 active={mode}
                 type="range"
-                min="1"
+                min="2"
                 max="300"
                 step="1"
                 value={value}

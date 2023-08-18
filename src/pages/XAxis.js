@@ -15,7 +15,6 @@ const XAxis = ({ selected, start, end, minBtn, hourBtn }) => {
     const [xAxis, setXAxis] = useState([])
     const [rerendering, setRerendering] = useState([])
     const value = useRecoilValue(selectedValue)
-    const [loader, setLoader] = useRecoilState(loading)
 
     // yyyymmddhhmmss 형태로 만듬.
 

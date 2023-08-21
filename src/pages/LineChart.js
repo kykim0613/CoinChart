@@ -66,6 +66,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
     //호출된 api가 저장됐을 때 실행 or x축만 변경되었을 때 실행
     useEffect(() => {
         dataRerendering(binance, upbit)
+        setLoader(false)
     }, [upbit, binance, rerendering])
 
     const fetchData = async (selected, start, end) => {
@@ -422,7 +423,6 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
         setLoader(true)
         setValue(e.target.value)
     }
-
 
     return (
         <>

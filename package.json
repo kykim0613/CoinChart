@@ -1,13 +1,11 @@
 {
-  "name": "cgv",
+  "name": "coin",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
-    "deploy": "gh-pages -d build",
-    "predeploy": "npm run build"
+    "build": "react-scripts build"
   },
   "author": "",
   "license": "ISC",
@@ -36,7 +34,7 @@
     "webpack-cli": "^5.1.1",
     "webpack-dev-server": "^4.15.0"
   },
-  "homepage": "http://kykim0613.github.io/CoinChart",
+  "homepage": "http://152.67.219.74/",
   "devDependencies": {
     "gh-pages": "^5.0.0"
   },

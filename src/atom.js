@@ -10,6 +10,17 @@ export const Loader = styled.div`
     left: 0;
 `
 
+export const DateBtn = styled.button`
+    width: 30px;
+    height: 30px;
+    border:none;
+    border-radius: 30px;
+    ${(props) => props.active && `border: 1px solid black`};
+    margin-left: 1px;
+    background-color:white;
+    cursor: pointer;
+`
+
 export const loading = atom({
     key: "loader",
     default: false

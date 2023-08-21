@@ -40,7 +40,7 @@ const SliderBar = styled.input`
 `
 
 
-const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }) => {
+const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
     const [binancePriceArray, setBinancePriceArray] = useState([])
     const [binanceVolumeArray, setBinanceVolumeArray] = useState([])
     const [upbitPriceArray, setUpBitPriceArray] = useState([])
@@ -203,9 +203,9 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
             //버그 수정중
             const timeList = dataList.map((time) => time.t)
             const list = rerendering.filter((element) => timeList.includes(element))
-            console.log(list, rerendering)
+
             // dataList roof 돌면서 시간 확인하여 merge 작업.
-            if (minBtn || hourBtn) {
+            if (btn === "min" || "hour") {
                 for (let i = 1; i < len; i++) {
                     const time = dataList[i].t
                     if (time < rerendering[xAxisIdx]) {
@@ -240,7 +240,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, minBtn, hourBtn }
                 result[i].tv /= result[i].groupedCount;
                 result[i].tp /= result[i].groupedCount;
             }
-            return minBtn ? result : result
+            return result
         } finally {
             console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
         }

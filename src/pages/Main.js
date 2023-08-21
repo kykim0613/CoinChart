@@ -1,5 +1,4 @@
 import { CategoryScale, Chart as ChartJS, Legend, LineElement, LinearScale, PointElement, Title, Tooltip } from "chart.js/auto";
-import { Bar, Line } from "react-chartjs-2";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { ListAPI } from "../api";
@@ -23,7 +22,7 @@ const BtnContainer = styled.div`
     line-height:30px;
     background-color:white;
 `
-const Btn = styled.button`
+const DateBtn = styled.button`
     width: 30px;
     height: 30px;
     border:none;
@@ -55,11 +54,7 @@ const Controller = styled.button`
 
 const Main = () => {
     const [coinList, setCoinList] = useState([])
-    const [minBtn, setMinBtn] = useState(true)
-    const [hourBtn, setHourBtn] = useState(false)
-    const [dateBtn, setDateBtn] = useState(false)
-    const [weekBtn, setWeekBtn] = useState(false)
-    const [monthBtn, setMonthBtn] = useState(false)
+    const [btn, setBtn] = useState("min")
     const [selected, setSelected] = useState(``)
     const [selectedIndex, setselectedIndex] = useState(0)
     const [selectList, setSelectList] = useState([])
@@ -138,61 +133,36 @@ const Main = () => {
     }
 
     const handleMinBtn = () => {
-        const selectedTime = 100
-        setMinBtn(true)
-        setHourBtn(false)
-        setDateBtn(false)
-        setWeekBtn(false)
-        setMonthBtn(false)
+        setBtn("min")
         setSelectedTime(100)
-        setLoader(true)
-        inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
+        // setLoader(true)
+        inputDate(coinList[selectedIndex].e - 100, coinList[selectedIndex].e)
     }
     const handleHourBtn = () => {
-        const selectedTime = 100
-        setMinBtn(false)
-        setHourBtn(true)
-        setDateBtn(false)
-        setWeekBtn(false)
-        setMonthBtn(false)
+        setBtn("hour")
         setSelectedTime(100)
-        setLoader(true)
-        inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
+        // setLoader(true)
+        inputDate(coinList[selectedIndex].e - 100, coinList[selectedIndex].e)
     }
     const handleDateBtn = () => {
-        const selectedTime = 10000
-        setMinBtn(false)
-        setHourBtn(false)
-        setDateBtn(true)
-        setWeekBtn(false)
-        setMonthBtn(false)
+        setBtn("date")
         setSelectedTime(10000)
-        setLoader(true)
-        inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
+        // setLoader(true)
+        inputDate(coinList[selectedIndex].e - 10000, coinList[selectedIndex].e)
         fixTime()
     }
     const handleWeekBtn = () => {
-        const selectedTime = 70000
-        setMinBtn(false)
-        setHourBtn(false)
-        setDateBtn(false)
-        setWeekBtn(true)
-        setMonthBtn(false)
+        setBtn("week")
         setSelectedTime(70000)
-        setLoader(true)
-        inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
+        // setLoader(true)
+        inputDate(coinList[selectedIndex].e - 70000, coinList[selectedIndex].e)
         fixTime()
     }
     const handleMonthBtn = () => {
-        const selectedTime = 1000000
-        setMinBtn(false)
-        setHourBtn(false)
-        setDateBtn(false)
-        setWeekBtn(false)
-        setMonthBtn(true)
+        setBtn("month")
         setSelectedTime(1000000)
-        setLoader(true)
-        inputDate(coinList[selectedIndex].e - selectedTime, coinList[selectedIndex].e)
+        // setLoader(true)
+        inputDate(coinList[selectedIndex].e - 1000000, coinList[selectedIndex].e)
         fixTime()
     }
 
@@ -231,7 +201,7 @@ const Main = () => {
         const endMonth = new Date(start.getFullYear(), start.getMonth() + 1, start.getDate())
         const endMonthString = toString(endMonth)
 
-        if (minBtn || hourBtn) {
+        if (btn === "min" || "hour") {
             if (Number(`${sliceDatefunc(value)}${startTime}`) < Number(`${endDate}${endTime}`)) {
                 setStartDate(sliceDatefunc(value))
                 setStartDateInput(value)
@@ -241,21 +211,21 @@ const Main = () => {
 
         }
 
-        if (dateBtn) {
+        if (btn === "date") {
             setStartDate(sliceDatefunc(value))
             setStartDateInput(value)
             setEndDate(sliceDatefunc(endDateString))
             setEndDateInput(endDateString)
         }
 
-        if (weekBtn) {
+        if (btn === "week") {
             setStartDate(sliceDatefunc(value))
             setStartDateInput(value)
             setEndDate(sliceDatefunc(endWeekString))
             setEndDateInput(endWeekString)
         }
 
-        if (monthBtn) {
+        if (btn === "month") {
             setStartDate(sliceDatefunc(value))
             setStartDateInput(value)
             setEndDate(sliceDatefunc(endMonthString))
@@ -277,7 +247,7 @@ const Main = () => {
         const prevMonth = new Date(end.getFullYear(), end.getMonth() - 1, end.getDate())
         const prevMonthString = toString(prevMonth)
 
-        if (minBtn || hourBtn) {
+        if (btn === "min" || "hour") {
             if (Number(`${startDate}${startTime}`) < Number(`${sliceDatefunc(value)}${endTime}`)) {
                 setEndDate(sliceDatefunc(value))
                 setEndDateInput(value)
@@ -286,19 +256,19 @@ const Main = () => {
             }
 
         }
-        if (dateBtn) {
+        if (btn === "date") {
             setStartDate(sliceDatefunc(prevDateString))
             setStartDateInput(prevDateString)
             setEndDate(sliceDatefunc(value))
             setEndDateInput(value)
         }
-        if (weekBtn) {
+        if (btn === "week") {
             setStartDate(sliceDatefunc(prevWeekString))
             setStartDateInput(prevWeekString)
             setEndDate(sliceDatefunc(value))
             setEndDateInput(value)
         }
-        if (monthBtn) {
+        if (btn === "month") {
             setStartDate(sliceDatefunc(prevMonthString))
             setStartDateInput(prevMonthString)
             setEndDate(sliceDatefunc(value))
@@ -332,7 +302,7 @@ const Main = () => {
         const monthObj = new Date(obj.getFullYear(), obj.getMonth() + 1, obj.getDate())
         const translateMonth = toString(monthObj)
 
-        if (hourBtn) {
+        if (btn === "hour") {
             if (Number(`${startDate}${numTime}`) < Number(`${endDate}${endTime}`)) {
                 setStartTimeInput(time)
                 setStartTime(numTime)
@@ -346,7 +316,7 @@ const Main = () => {
             }
         }
 
-        if (dateBtn) {
+        if (btn === "date") {
             if (sliceDatefunc(translateDate) < endDate) {
                 setStartDate(sliceDatefunc(translateDate))
                 setStartDateInput(translateDate)
@@ -356,7 +326,7 @@ const Main = () => {
             }
         }
 
-        if (weekBtn) {
+        if (btn === "week") {
             if (sliceDatefunc(translateWeek) < endDate) {
                 setStartDate(sliceDatefunc(translateWeek))
                 setStartDateInput(translateWeek)
@@ -366,7 +336,7 @@ const Main = () => {
             }
         }
 
-        if (monthBtn) {
+        if (btn === "month") {
             if (sliceDatefunc(translateMonth) < endDate) {
                 setStartDate(sliceDatefunc(translateMonth))
                 setStartDateInput(translateMonth)
@@ -403,7 +373,7 @@ const Main = () => {
         const monthObj = new Date(object.getFullYear(), object.getMonth() - 1, object.getDate())
         const translateMonth = toString(monthObj)
 
-        if (hourBtn) {
+        if (btn === "hour") {
             setStartTimeInput(time)
             setStartTime(numTime)
             // 시간이 23시를 지나갈 때 날짜 변경하는 부분
@@ -414,17 +384,17 @@ const Main = () => {
 
         }
 
-        if (dateBtn) {
+        if (btn === "date") {
             setStartDate(sliceDatefunc(translateDate))
             setStartDateInput(translateDate)
         }
 
-        if (weekBtn) {
+        if (btn === "week") {
             setStartDate(sliceDatefunc(translateWeek))
             setStartDateInput(translateWeek)
         }
 
-        if (monthBtn) {
+        if (btn === "month") {
             setStartDate(sliceDatefunc(translateMonth))
             setStartDateInput(translateMonth)
         }
@@ -455,7 +425,7 @@ const Main = () => {
         const monthObj = new Date(obj.getFullYear(), obj.getMonth() + 1, obj.getDate())
         const translateMonth = toString(monthObj)
 
-        if (hourBtn) {
+        if (btn === "hour") {
             setEndTimeInput(time)
             setEndTime(numTime)
             if (hourObj === 0) {
@@ -465,17 +435,17 @@ const Main = () => {
 
         }
 
-        if (dateBtn) {
+        if (btn === "date") {
             setEndDate(sliceDatefunc(translateDate))
             setEndDateInput(translateDate)
         }
 
-        if (weekBtn) {
+        if (btn === "week") {
             setEndDate(sliceDatefunc(translateWeek))
             setEndDateInput(translateWeek)
         }
 
-        if (monthBtn) {
+        if (btn === "month") {
             setEndDate(sliceDatefunc(translateMonth))
             setEndDateInput(translateMonth)
         }
@@ -507,7 +477,7 @@ const Main = () => {
         const monthObj = new Date(object.getFullYear(), object.getMonth() - 1, object.getDate())
         const translateMonth = toString(monthObj)
 
-        if (hourBtn) {
+        if (btn === "hour") {
             if (Number(`${startDate}${startTime}`) < Number(`${endDate}${numTime}`)) {
                 setEndTimeInput(time)
                 setEndTime(numTime)
@@ -520,7 +490,7 @@ const Main = () => {
             }
         }
 
-        if (dateBtn) {
+        if (btn === "date") {
             if (startDate < sliceDatefunc(translateDate)) {
                 setEndDate(sliceDatefunc(translateDate))
                 setEndDateInput(translateDate)
@@ -529,7 +499,7 @@ const Main = () => {
             }
         }
 
-        if (weekBtn) {
+        if (btn === "week") {
             if (startDate < sliceDatefunc(translateWeek)) {
                 setEndDate(sliceDatefunc(translateWeek))
                 setEndDateInput(translateWeek)
@@ -538,7 +508,7 @@ const Main = () => {
             }
         }
 
-        if (monthBtn) {
+        if (btn === "month") {
             if (startDate < sliceDatefunc(translateMonth)) {
                 setEndDate(sliceDatefunc(translateMonth))
                 setEndDateInput(translateMonth)
@@ -574,7 +544,7 @@ const Main = () => {
         const monthObj = new Date(object.getFullYear(), object.getMonth() + 1, object.getDate())
         const translateMonth = toString(monthObj)
 
-        if (hourBtn) {
+        if (btn === "hour") {
                 setStartTimeInput(endTimeInput)
                 setStartTime(endTime)
                 setEndTimeInput(time)
@@ -589,21 +559,21 @@ const Main = () => {
             }
         }
 
-        if (dateBtn) {
+        if (btn === "date") {
                 setStartDate(endDate)
                 setStartDateInput(endDateInput)
                 setEndDate(sliceDatefunc(translateDate))
                 setEndDateInput(translateDate)
         }
 
-        if (weekBtn) {
+        if (btn === "week") {
             setStartDate(endDate)
             setStartDateInput(endDateInput)
             setEndDate(sliceDatefunc(translateWeek))
             setEndDateInput(translateWeek)
         }
 
-        if (monthBtn) {
+        if (btn === "month") {
             setStartDate(endDate)
             setStartDateInput(endDateInput)
             setEndDate(sliceDatefunc(translateMonth))
@@ -637,7 +607,7 @@ const Main = () => {
         const monthObj = new Date(object.getFullYear(), object.getMonth() - 1, object.getDate())
         const translateMonth = toString(monthObj)
 
-        if (hourBtn) {
+        if (btn === "hour") {
                 setStartTimeInput(time)
                 setStartTime(numTime)
                 setEndTimeInput(startTimeInput)
@@ -650,21 +620,21 @@ const Main = () => {
             }
         }
 
-        if (dateBtn) {
+        if (btn === "date") {
                 setStartDate(sliceDatefunc(translateDate))
                 setStartDateInput(translateDate)
                 setEndDate(startDate)
                 setEndDateInput(startDateInput)
         }
 
-        if (weekBtn) {
+        if (btn === "week") {
             setStartDate(sliceDatefunc(translateWeek))
             setStartDateInput(translateWeek)
             setEndDate(startDate)
             setEndDateInput(startDateInput)
         }
 
-        if (monthBtn) {
+        if (btn === "month") {
             setStartDate(sliceDatefunc(translateMonth))
             setStartDateInput(translateMonth)
             setEndDate(startDate)
@@ -706,8 +676,7 @@ const Main = () => {
             selected={selected}
             start={start}
             end={end}
-            minBtn={minBtn}
-            hourBtn={hourBtn}
+            btn = {btn}
         />
     );
 
@@ -720,11 +689,11 @@ const Main = () => {
                 ))}
             </select>
             <BtnContainer>
-                <Btn active={minBtn} onClick={handleMinBtn}>분</Btn>
-                <Btn active={hourBtn} onClick={handleHourBtn}>시</Btn>
-                <Btn active={dateBtn} onClick={handleDateBtn}>일</Btn>
-                <Btn active={weekBtn} onClick={handleWeekBtn}>주</Btn>
-                <Btn active={monthBtn} onClick={handleMonthBtn}>월</Btn>
+                <DateBtn active={btn === "min"} onClick={handleMinBtn}>분</DateBtn>
+                <DateBtn active={btn === "hour"} onClick={handleHourBtn}>시</DateBtn>
+                <DateBtn active={btn === "date"} onClick={handleDateBtn}>일</DateBtn>
+                <DateBtn active={btn === "week"} onClick={handleWeekBtn}>주</DateBtn>
+                <DateBtn active={btn === "month"} onClick={handleMonthBtn}>월</DateBtn>
             </BtnContainer>
             <Market>
                 {selected}
@@ -746,14 +715,12 @@ const Main = () => {
                     value={startTimeInput}
                     onChange={handleTimeStart}
                     type="time"
-                    disabled={dateBtn || weekBtn || monthBtn}
                 />
                 -
                 <DateInput
                     value={endTimeInput}
                     onChange={handleTimeEnd}
                     type="time"
-                    disabled={dateBtn || weekBtn || monthBtn}
                 />
                 <br />
                 <br />
@@ -762,29 +729,29 @@ const Main = () => {
                 <br />
                 <Controller
                     active={mode}
-                    disabled={minBtn}
                     onClick={handleStartMinusBtn}
+                    disabled={btn === "min"}
                 >
                     ◀
                 </Controller>
                 <Controller
                     active={mode}
-                    disabled={minBtn}
                     onClick={handleStartPlusBtn}
+                    disabled={btn === "min"}
                 >
                     ▶
                 </Controller>
                 <Controller
                     active={mode}
-                    disabled={minBtn}
                     onClick={handleEndMinusBtn}
+                    disabled={btn === "min"}
                 >
                     ◀
                 </Controller>
                 <Controller
                     active={mode}
-                    disabled={minBtn}
                     onClick={handleEndPlusBtn}
+                    disabled={btn === "min"}
                 >
                     ▶
                 </Controller>
@@ -795,24 +762,20 @@ const Main = () => {
                 <br />
                 <Controller
                     active={mode}
-                    disabled={minBtn}
                     onClick={handleMinus}
+                    disabled={btn === "min"}
                 >
                     ◀◀
                 </Controller><Controller
                     active={mode}
-                    disabled={minBtn}
                     onClick={handlePlus}
+                    disabled={btn === "min"}
                 >
                     ▶▶
                 </Controller>
             </DateContainer>
             <br />
-            {minBtn && XAxisComponent}
-            {hourBtn && XAxisComponent}
-            {dateBtn && XAxisComponent}
-            {weekBtn && XAxisComponent}
-            {monthBtn && XAxisComponent}
+            {XAxisComponent}
             <br />
             <ModeBtn />
         </>

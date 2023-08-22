@@ -1,28 +1,27 @@
-import { ip } from "./data.config"
 
 export const upbitListAPI = async () => {
 
-    const response = await fetch(`http://${ip}/api/upbit/markets`)
+    const response = await fetch(`http://api/upbit/markets`)
     const data = await response.json()
 
     return data
 }
 
 export const binanceListAPI = async () => {
-    const response = await fetch(`http://${ip}/api/binance/markets`)
+    const response = await fetch(`http://api/binance/markets`)
     const data = await response.json()
     return data
 }
 
 export const upbitCandlesAPI = async (market, start, end) => {
-    const response = await fetch(`http://${ip}/api/upbit/candles?market=KRW-${market}&start=${start}&end=${end}`)
+    const response = await fetch(`http://api/upbit/candles?market=KRW-${market}&start=${start}&end=${end}`)
     const data = await response.json()
 
     return data
 }
 
 export const binanceCandlesAPI = async (market, start, end) => {
-    const response = await fetch(`http://${ip}/api/binance/candles?market=${market}USDT&start=${start}&end=${end}`)
+    const response = await fetch(`http://api/binance/candles?market=${market}USDT&start=${start}&end=${end}`)
     const data = await response.json()
 
     return data

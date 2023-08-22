@@ -59,7 +59,6 @@ const Main = () => {
         } else {
             alert(`종료시간은 시작시간보다 작을 수 없습니다.`)
         }
-
     }
 
     const handleTimeEnd = (e) => {

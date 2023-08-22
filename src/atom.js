@@ -21,6 +21,26 @@ export const DateBtn = styled.button`
     cursor: pointer;
 `
 
+export const DateContainer = styled.div`
+    width: 100%;
+    text-align:center;
+`
+export const DateInput = styled.input`
+    width:130px;
+    height:30px;
+    font-size: 16px;
+`
+
+export const Controller = styled.button`
+    width: 60px;
+    height: 35px;
+    border: 1px solid #000;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 6px 0 5px;
+    font-size: 16px;
+`
+
 export const loading = atom({
     key: "loader",
     default: false

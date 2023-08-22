@@ -149,7 +149,7 @@ export const handleDateEnd = (btn, value, setStartDateInput, setEndDateInput, st
     }
 
 // start Input만 더하는 버튼 컨트롤러
-export const handleStartPlusBtn = (btn, startDateInput, startTimeInput, setStartTimeInput, setStartDateInput, endDate, endTime) => {
+export const handleStartPlusBtn = (btn, startDateInput, startTimeInput, setStartTimeInput, setStartDateInput,startDate, endDate, endTime) => {
     const obj = new Date(startDateInput)
     const hours = startTimeInput.slice(0, 2)
     const mins = startTimeInput.slice(3)
@@ -300,7 +300,7 @@ export const handleEndPlusBtn = (btn, endDateInput, endTimeInput, setEndDateInpu
 }
 
 // end Input만 빼는 버튼 컨트롤러
-export const handleEndMinusBtn = (btn, endDateInput, endTimeInput, setEndDateInput, setEndTimeInput, startDate, startTime) => {
+export const handleEndMinusBtn = (btn, endDateInput, endTimeInput, setEndDateInput, setEndTimeInput, startDate, endDate, startTime) => {
     const object = new Date(endDateInput)
 
     const hours = endTimeInput.slice(0, 2)

@@ -119,11 +119,11 @@ const handleMonth = () => {
     }
 // start Input만 더하는 버튼 컨트롤러
     const handleStartPlus = () => {
-        handleStartPlusBtn(btn, startDateInput, startTimeInput, setStartTimeInput, setStartDateInput, endDate, endTime)
+        handleStartPlusBtn(btn, startDateInput, startTimeInput, setStartTimeInput, setStartDateInput,startDate, endDate, endTime)
     }
 // end Input만 빼는 버튼 컨트롤러
     const handleEndMinus =() => {
-        handleEndMinusBtn(btn, endDateInput, endTimeInput, setEndDateInput, setEndTimeInput, startDate, startTime)
+        handleEndMinusBtn(btn, endDateInput, endTimeInput, setEndDateInput, setEndTimeInput, startDate, endDate, startTime)
     }
 // end Input만 더하는 버튼 컨트롤러
     const handleEndPlus = () => {

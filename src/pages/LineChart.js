@@ -80,6 +80,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
             setUpbit(data2)
         } catch (error) {
             console.log(error)
+            alert("서버 연결 오류")
         }
     }
 
@@ -201,12 +202,8 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
             p.groupedCount = 1;
             let xAxisIdx = 1;
 
-            //버그 수정중
-            const timeList = dataList.map((time) => time.t)
-            const list = rerendering.filter((element) => timeList.includes(element))
-
             // dataList roof 돌면서 시간 확인하여 merge 작업.
-            if (btn === "min" || "hour") {
+            if (btn === "hour") {
                 for (let i = 1; i < len; i++) {
                     const time = dataList[i].t
                     if (time < rerendering[xAxisIdx]) {
@@ -214,7 +211,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
                     } else {
                         result.push(p)
                         p = Object.assign({}, dataList[i]) // 얕은 복사
-                        p.t = list[xAxisIdx]
+                        p.t = rerendering[xAxisIdx]
                         p.groupedCount = 1;
                         xAxisIdx++
                     }
@@ -247,6 +244,53 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
         }
     }
 
+    //수정된 그룹화함수
+    // const groupedArray = (dataList, xAxis) => {
+    //     const runTime = new Date();
+    //     const result = []
+    //     try {
+    //         if (!dataList || dataList.length <= 0) {
+    //             // dataList 빈껍질이면 빈 배열 return
+    //             return []
+    //         }
+
+    //         let xAxisIdx = 0;
+    //         const len = dataList.length
+
+    //         for (let i = 0; i < len; i++) {
+    //             if (xAxisIdx + 1 >= xAxis.length) {
+    //                 break;
+    //             }
+    //             const time = dataList[i].t
+    //             if (xAxis[xAxisIdx] <= time && time < xAxis[xAxisIdx + 1]) {
+    //                 if (result[xAxisIdx]) {
+    //                     merge(result[xAxisIdx], dataList[i])
+    //                 } else {
+    //                     result[xAxisIdx] = Object.assign({}, dataList[i])
+    //                     result[xAxisIdx].t = xAxis[xAxisIdx];
+    //                     result[xAxisIdx].groupedCount = 1;
+    //                 }
+    //             } else {
+    //                 xAxisIdx++
+    //                 i--;
+    //             }
+    //         }
+
+    //         // volume 값 평균 계산
+    //         const t = [];
+    //         for (let i = 0; i < result.length; i++) {
+    //             if (!result[i]) {
+    //                 continue;
+    //             }
+    //             result[i].tv /= result[i].groupedCount;
+    //             result[i].tp /= result[i].groupedCount;
+    //             t.push(result[i]);
+    //         }
+    //         return t
+    //     } finally {
+    //         console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
+    //     }
+    // }
     const upbitLength = upbitAxisArray.length
     const binanceLength = binanceAxisArray.length
     //upbit 좌표 생성 함수

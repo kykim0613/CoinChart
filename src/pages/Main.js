@@ -2,10 +2,11 @@ import { CategoryScale, Chart as ChartJS, Legend, LineElement, LinearScale, Poin
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import XAxis from "./XAxis";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { Controller, DateBtn, DateContainer, DateInput, Loader, blackMode, loading } from "../atom";
+import { useRecoilValue } from "recoil";
+import { Controller, DateBtn, DateContainer, DateInput, blackMode } from "../atom";
 import ModeBtn from "../components/ModeBtn";
-import { fetchData, fixTime, handleDateBtn, handleDateEnd, handleDateStart, handleEndMinusBtn, handleEndPlusBtn, handleHourBtn, handleMinBtn, handleMinus, handleMonthBtn, handlePlus, handleStartMinusBtn, handleStartPlusBtn, handleWeekBtn, inputDate, sliceDatefunc, sliceTimeFunc, toString } from "../handleDateModule";
+import { handleDateBtn, handleDateEnd, handleDateStart, handleHourBtn, handleMinBtn, handleMinus, handleMonthBtn, handlePlus, handleStartMinusBtn, handleStartPlusBtn, handleWeekBtn } from "../handleDateModule";
+import { ListAPI } from "../api";
 
 const Market = styled.h1`
     width: 100px;
@@ -25,56 +26,69 @@ const BtnContainer = styled.div`
 
 const Main = () => {
     const [coinList, setCoinList] = useState([])
-    const [btn, setBtn] = useState("min")
+    const [btn, setBtn] = useState("date")
     const [selectedIndex, setselectedIndex] = useState(0)
-    const [startDateInput, setStartDateInput] = useState(0)
-    const [endDateInput, setEndDateInput] = useState(0)
-    const [startTimeInput, setStartTimeInput] = useState(``)
-    const [endTimeInput, setEndTimeInput] = useState(``)
+    const [inputRange, setInputRange] = useState({s:"", e:""})
 
-    const [loader, setLoader] = useRecoilState(loading)
     const mode = useRecoilValue(blackMode)
 
-    const startDate = sliceDatefunc(toString(new Date(startDateInput)))
-    const endDate = sliceDatefunc(toString(new Date(endDateInput)))
-    const startTime = sliceTimeFunc(startTimeInput)
-    const endTime = sliceTimeFunc(endTimeInput)
+    const startString = `${inputRange.s}`
+    const endString = `${inputRange.e}`
+    const start = Number(startString.slice(0, 4) + startString.slice(5, 7) + startString.slice(8, 10) + startString.slice(11, 13) + startString.slice(14, 16))
+    const end = Number(endString.slice(0, 4) + endString.slice(5, 7) + endString.slice(8, 10) + endString.slice(11, 13) + endString.slice(14, 16))
 
     useEffect(() => {
-        fetchData(setCoinList, setStartDateInput, setEndDateInput, setStartTimeInput, setEndTimeInput)
+        fetchData()
     }, [])
+
+    const fetchData = async () => {
+        try {
+            const data1 = await ListAPI()
+
+            setCoinList(data1)
+
+            inputDate(data1[0].e, btn)
+
+        } catch (error) {
+            console.log(error)
+            alert("서버 연결 오류")
+        }
+    }
+
+    const inputDate = (value, state) => {
+        // 한시간을 밀리세컨트로 나타냄
+        const hour = 60 * 60 * 1000
+        // 하루를 밀리세컨드로 나타냄
+        const day = 24 * 60 * 60 * 1000
+        // 일주일
+        const week = day * 7
+
+        const stringValue = `${value}`
+
+        const end = `${stringValue.slice(0, 4)}-${stringValue.slice(4, 6)}-${stringValue.slice(6, 8)}T${state === "hour" ? stringValue.slice(8, 10) : '00'}:00`
+        const date = new Date(end)
+
+        const start =
+        state === "hour" ? new Date(date.getTime() - hour) :
+        state === "date" ? new Date(date.getTime() - day) :
+        state === "week" ? new Date(date.getTime() - week) :
+        alert("에러 발생")
+
+        const startYear = start.getFullYear()
+        const startMonth = new Date(start).getMonth() + 1
+        const startDay = new Date(start).getDate()
+        const startTime = new Date(start).getHours()
+
+        const startInput = `${startYear}-${startMonth < 10 ? '0' + startMonth : startMonth}-${startDay < 10 ? '0' + startDay : startDay}T${state === "hour" ? `${startTime < 10 ? `0${startTime}` : startTime}:00` : `00:00`}`
+
+        setInputRange({s: startInput, e: end})
+    }
 
     // 코인 리스트에서 코인 선택
     const handleSelectChange = (e) => {
         setselectedIndex(e.target.selectedIndex)
     }
 
-    // hh:mm input
-    const handleTimeStart = (e) => {
-        setLoader(true)
-        const value = e.target.value
-
-        if (Number(`${startDate}${sliceTimeFunc(value)}`) < Number(`${endDate}${endTime}`)) {
-            setStartTimeInput(value)
-        } else {
-            alert(`종료시간은 시작시간보다 작을 수 없습니다.`)
-        }
-    }
-
-    const handleTimeEnd = (e) => {
-        setLoader(true)
-        const value = e.target.value
-
-        if (Number(`${startDate}${startTime}`) < Number(`${endDate}${sliceTimeFunc(end)}`)) {
-            setEndTimeInput(value)
-        } else {
-            alert(`종료시간은 시작시간보다 작을 수 없습니다.`)
-        }
-
-    }
-
-    const start = Number(`${startDate}${startTime}`)
-    const end = Number(`${endDate}${endTime}`)
     const tickerListArray = coinList.map((ticker) => ticker.t.slice(4))
 
     const XAxisComponent = (
@@ -82,70 +96,60 @@ const Main = () => {
             selected={tickerListArray[selectedIndex]}
             start={start}
             end={end}
-            btn = {btn}
+            btn={btn}
         />
     );
 
-const handleMin = () => {
-    handleMinBtn(setBtn, inputDate(coinList[selectedIndex].e - 100, coinList[selectedIndex].e, setStartDateInput, setEndDateInput, setStartTimeInput, setEndTimeInput))
-}
-const handleHour = () => {
-    handleHourBtn(setBtn, inputDate(coinList[selectedIndex].e - 100, coinList[selectedIndex].e, setStartDateInput, setEndDateInput, setStartTimeInput, setEndTimeInput))
-}
-const handleDate = () => {
-    handleDateBtn(setBtn, inputDate(coinList[selectedIndex].e - 10000, coinList[selectedIndex].e, setStartDateInput, setEndDateInput, setStartTimeInput, setEndTimeInput), fixTime(setStartTimeInput, setEndTimeInput))
-}
-const handleWeek = () => {
-    handleWeekBtn(setBtn, inputDate(coinList[selectedIndex].e - 70000, coinList[selectedIndex].e, setStartDateInput, setEndDateInput, setStartTimeInput, setEndTimeInput), fixTime(setStartTimeInput, setEndTimeInput))
-}
-const handleMonth = () => {
-    handleMonthBtn(setBtn, inputDate(coinList[selectedIndex].e - 1000000, coinList[selectedIndex].e, setStartDateInput, setEndDateInput, setStartTimeInput, setEndTimeInput), fixTime(setStartTimeInput, setEndTimeInput))
-}
+    const handleHour = () => {
+        const state = "hour"
+        handleHourBtn(setBtn)
+        inputDate(coinList[selectedIndex].e, state)
+    }
+    const handleDate = () => {
+        const state = "date"
+        handleDateBtn(setBtn)
+        inputDate(coinList[selectedIndex].e, state)
+    }
+    const handleWeek = () => {
+        const state = "week"
+        handleWeekBtn(setBtn)
+        inputDate(coinList[selectedIndex].e, state)
+    }
+    const handleMonth = () => {
+        const state = "month"
+        handleMonthBtn(setBtn)
+        inputDate(coinList[selectedIndex].e, state)
+    }
 
-// start Date를 input 눌러 선택할 때
+    // start Date를 input 눌러 선택할 때
     const handlestartDate = (e) => {
         const value = e.target.value
-        handleDateStart(btn, value, setStartDateInput, setEndDateInput, endDate, startTime, endTime)
+        handleDateStart(value, setInputRange, end, inputRange.e)
     }
-// end Date를 input 눌러 선택할 때
+    // end Date를 input 눌러 선택할 때
     const hanldeEndDate = (e) => {
         const value = e.target.value
-        handleDateEnd(btn, value, setStartDateInput, setEndDateInput, startDate, startTime, endTime)
+        handleDateEnd(value, setInputRange, start, inputRange.s)
     }
-// start Input만 빼는 버튼 컨트롤러
-    const handleStartMinus = () => {
-        handleStartMinusBtn(btn, startDateInput, startTimeInput, setStartTimeInput, setStartDateInput)
-    }
-// start Input만 더하는 버튼 컨트롤러
-    const handleStartPlus = () => {
-        handleStartPlusBtn(btn, startDateInput, startTimeInput, setStartTimeInput, setStartDateInput,startDate, endDate, endTime)
-    }
-// end Input만 빼는 버튼 컨트롤러
-    const handleEndMinus =() => {
-        handleEndMinusBtn(btn, endDateInput, endTimeInput, setEndDateInput, setEndTimeInput, startDate, endDate, startTime)
-    }
-// end Input만 더하는 버튼 컨트롤러
-    const handleEndPlus = () => {
-        handleEndPlusBtn(btn, endDateInput, endTimeInput, setEndDateInput, setEndTimeInput)
-    }
-//두 인풋에 동일하게 빼는 버튼
+
+
+    //두 인풋에 동일하게 빼는 버튼
     const handleAllMinus = () => {
-        handleMinus(btn, startDateInput, startTimeInput, setStartTimeInput, setEndTimeInput, setStartDateInput, setEndDateInput)
+        handleMinus(setInputRange, inputRange, btn)
     }
-//두 인풋에 동일하게 더하는 버튼
+    //두 인풋에 동일하게 더하는 버튼
     const handleAllPlus = () => {
-        handlePlus(btn, endDateInput, endTimeInput, setStartDateInput, setEndDateInput, setStartTimeInput, setEndTimeInput)
+        handlePlus(setInputRange, inputRange, btn)
     }
+
     return (
         <>
-            {loader && <Loader />}
             <select onChange={handleSelectChange}>
                 {tickerListArray.map((option) => (
                     <option key={option}>{option}</option>
                 ))}
             </select>
             <BtnContainer>
-                <DateBtn active={btn === "min"} onClick={handleMin}>분</DateBtn>
                 <DateBtn active={btn === "hour"} onClick={handleHour}>시</DateBtn>
                 <DateBtn active={btn === "date"} onClick={handleDate}>일</DateBtn>
                 <DateBtn active={btn === "week"} onClick={handleWeek}>주</DateBtn>
@@ -156,79 +160,29 @@ const handleMonth = () => {
             </Market>
             <DateContainer>
                 <DateInput
-                    value={startDateInput}
+                    value={inputRange.s}
                     onChange={handlestartDate}
-                    type="date"
+                    type="datetime-local"
                 />
                 -
                 <DateInput
-                    value={endDateInput}
+                    value={inputRange.e}
                     onChange={hanldeEndDate}
-                    type="date"
+                    type="datetime-local"
                 />
                 <br />
-                <DateInput
-                    value={startTimeInput}
-                    onChange={handleTimeStart}
-                    type="time"
-                />
-                -
-                <DateInput
-                    value={endTimeInput}
-                    onChange={handleTimeEnd}
-                    type="time"
-                />
-                <br />
-                <br />
-                {/* 방향으로 시, 일, 주, 월 만큼 움직이는 버튼 */}
-                Start / End
-                <br />
-                <Controller
-                    active={mode}
-                    onClick={handleStartMinus}
-                    disabled={btn === "min"}
-                >
-                    ◀
-                </Controller>
-                <Controller
-                    active={mode}
-                    onClick={handleStartPlus}
-                    disabled={btn === "min"}
-                >
-                    ▶
-                </Controller>
-                <Controller
-                    active={mode}
-                    onClick={handleEndMinus}
-                    disabled={btn === "min"}
-                >
-                    ◀
-                </Controller>
-                <Controller
-                    active={mode}
-                    onClick={handleEndPlus}
-                    disabled={btn === "min"}
-                >
-                    ▶
-                </Controller>
-                <br />
-                <br />
-                {/* 시, 일, 주, 월 단위로 움직이는 버튼 */}
-                Start + End
                 <br />
                 <Controller
                     active={mode}
                     onClick={handleAllMinus}
-                    disabled={btn === "min"}
                 >
-                    ◀◀
+                    ◀
                 </Controller>
                 <Controller
                     active={mode}
                     onClick={handleAllPlus}
-                    disabled={btn === "min"}
                 >
-                    ▶▶
+                    ▶
                 </Controller>
             </DateContainer>
             <br />

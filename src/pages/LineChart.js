@@ -85,8 +85,8 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
 
     const dataRerendering = (binance, upbit) => {
         const timeCheck = new Date()
-            const dataArray1 = groupedArray(binance)
-            const dataArray2 = groupedArray(upbit)
+        const dataArray1 = groupedArray(binance, xAxis)
+        const dataArray2 = groupedArray(upbit, xAxis)
 
             //세 가지 값 리턴
             transArray(dataArray1, dataArray2)
@@ -147,7 +147,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
                 priceList.push(Math.round(((node.cp / firstPrice) - 1) * 10000) / 100);
                 volumeList.push(node.tv);
                 axisList.push(node.t);
-            }  
+            }
         } else {
             for (let i = 0; i < len; i++) {
                 const node = data[i];
@@ -184,9 +184,7 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
         return m1;
     }
 
-    // data를 merge할 때 x축 기준으로 순서대로 푸시하는데 60분에 좌표가 45개라서 문제가 발생. (06분~50분)
-    // 따라서 분과 시의 경우에는 if else로 나눠 따로 처리해줌
-    const groupedArray = (dataList) => {
+    const groupedArray = (dataList, xAxis) => {
         const runTime = new Date();
         const result = []
         try {
@@ -195,53 +193,39 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
                 return []
             }
 
+            let xAxisIdx = 0;
             const len = dataList.length
-            let p = Object.assign({}, dataList[0]) // 얕은 복사
-            p.t = rerendering[0]
-            p.groupedCount = 1;
-            let xAxisIdx = 1;
 
-            //버그 수정중
-            const timeList = dataList.map((time) => time.t)
-            const list = rerendering.filter((element) => timeList.includes(element))
-
-            // dataList roof 돌면서 시간 확인하여 merge 작업.
-            if (btn === "min" || "hour") {
-                for (let i = 1; i < len; i++) {
-                    const time = dataList[i].t
-                    if (time < rerendering[xAxisIdx]) {
-                        p = merge(p, dataList[i])
-                    } else {
-                        result.push(p)
-                        p = Object.assign({}, dataList[i]) // 얕은 복사
-                        p.t = list[xAxisIdx]
-                        p.groupedCount = 1;
-                        xAxisIdx++
-                    }
+            for (let i = 0; i < len; i++) {
+                if (xAxisIdx + 1 >= xAxis.length) {
+                    break;
                 }
-            } else {
-                for (let i = 1; i < len; i++) {
-                    const time = dataList[i].t
-                    if (time < rerendering[xAxisIdx]) {
-                        p = merge(p, dataList[i])
+                const time = dataList[i].t
+                if (xAxis[xAxisIdx] <= time && time < xAxis[xAxisIdx + 1]) {
+                    if (result[xAxisIdx]) {
+                        merge(result[xAxisIdx], dataList[i])
                     } else {
-                        result.push(p)
-                        p = Object.assign({}, dataList[i]) // 얕은 복사
-                        p.t = rerendering[xAxisIdx]
-                        p.groupedCount = 1;
-                        xAxisIdx++
+                        result[xAxisIdx] = Object.assign({}, dataList[i])
+                        result[xAxisIdx].t = xAxis[xAxisIdx];
+                        result[xAxisIdx].groupedCount = 1;
                     }
+                } else {
+                    xAxisIdx++
+                    i--;
                 }
             }
-            // 마지막 값 result 에 push
-            result.push(p)
 
             // volume 값 평균 계산
+            const t = [];
             for (let i = 0; i < result.length; i++) {
+                if (!result[i]) {
+                    continue;
+                }
                 result[i].tv /= result[i].groupedCount;
                 result[i].tp /= result[i].groupedCount;
+                t.push(result[i]);
             }
-            return result
+            return t
         } finally {
             console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
         }
@@ -390,8 +374,8 @@ const LineChart = ({ start, end, selected, xAxis, rerendering, btn }) => {
 
     const handleChangeBtn = () => {
         if (change === false) {
-            const [binancePrice, binanceVolume, binanceAxis] = sepLists(groupedArray(binance), true, null)
-            const [upbitPrice, upbitVolume, upbitAxis] = sepLists(groupedArray(upbit), true, null);
+            const [binancePrice, binanceVolume, binanceAxis] = sepLists(groupedArray(binance, xAxis), true, null)
+            const [upbitPrice, upbitVolume, upbitAxis] = sepLists(groupedArray(upbit, xAxis), true, null);
             setBinancePriceArray(binancePrice)
             setBinanceVolumeArray(binanceVolume)
             setBinanceAxisArray(binanceAxis)

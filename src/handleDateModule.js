@@ -5,6 +5,8 @@ const day = 24 * 60 * 60 * 1000
 // 일주일
 const week = day * 7
 
+const month = day * 30
+
 export const handleMinBtn = (setBtn) => {
     setBtn("min")
 }
@@ -39,63 +41,125 @@ const transFormat = (value) => {
 }
 
 // startInput을 눌러서 날짜가 변경되는걸 반영해주는 함수
-export const handleDateStart = (value, setInputRange, end, e) => {
+export const handleDateStart = (value, setInputRange, end, inputRange) => {
 
-    if (transFormat(value) < end) {
-        setInputRange({s: value, e: e})
+    const now = new Date(inputRange.s)
+    const next = new Date(now)
+    next.setMonth(now.getMonth() + 1)
+
+    const month = next - now
+
+    const currentMonth = new Date(value)
+    const nextMonth = new Date(inputRange.e)
+
+    const compare = nextMonth - currentMonth
+
+    if(compare < month){
+        if (transFormat(value) < end) {
+            setInputRange({s: value, e: inputRange.e})
+        } else {
+            alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
+        }
     } else {
-        alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
+        alert(`한달 이내로만 선택이 가능합니다.`)
     }
 }
 
 // endInput을 눌러서 날짜가 변경되는걸 반영해주는 함수
-export const handleDateEnd = (value, setInputRange, start, s) => {
+export const handleDateEnd = (value, setInputRange, start, inputRange) => {
 
-    if (start < transFormat(value)) {
-        setInputRange({s: s, e: value})
+    const now = new Date(inputRange.e)
+    const next = new Date(now)
+    next.setMonth(now.getMonth() + 1)
+
+    const month = next - now
+
+    const currentMonth = new Date(inputRange.s)
+    const nextMonth = new Date(value)
+
+    const compare = nextMonth - currentMonth
+
+    if(compare < month){
+        if (start < transFormat(value)) {
+            setInputRange({s: inputRange.s, e: value})
+        } else {
+            alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
+        }
     } else {
-        alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
+        alert(`한달 이내로만 선택이 가능합니다.`)
     }
 }
 
-// -공사중-
 //두 인풋에 동일하게 더하는 버튼
 export const handlePlus = (setInputRange, inputRange, btn) => {
-    const startDate = btn === "hour" ? new Date(inputRange.s) : new Date(inputRange.s.slice(0, 10))
-    const endDate = btn === "hour" ? new Date(inputRange.e) : new Date(inputRange.e.slice(0, 10))
+    const start = new Date(inputRange.s)
+    const end = new Date(inputRange.e)
 
-    const startTime = new Date(startDate.getTime() + hour).getHours()
-    const endTime = new Date(endDate.getTime() + hour).getHours()
+    //말일 구하기
+    const currentMonth = new Date(inputRange.s)
+    currentMonth.setMonth(currentMonth.getMonth() + 1)
+    const nextMonth = new Date(currentMonth)
+    nextMonth.setMonth(currentMonth.getMonth() + 1)
+    const lastDay = new Date(nextMonth.getTime() - day).getDate()
 
-    const range = btn === "date" ? day : btn === "week" ? week : null
+    const plusStartTime = new Date(start.getTime() + (btn === "hour" ? hour : null))
+    const plusEndTime = new Date(end.getTime() + (btn === "hour" ? hour : null))
 
-    const plusStart = new Date(startDate.getTime() + range)
-    const plustEnd = new Date(endDate.getTime() + range)
+    const plusStartDate = new Date(start.getTime() + (btn === "date" ? day : btn === "week" ? week : null))
+    const plusEndDate = new Date(end.getTime() + (btn === "date" ? day : btn === "week" ? week : null))
 
-    const s = plusStart.toISOString().slice(0,10) + (btn === "hour" ? (startTime < 10 ? `T0${startTime}:00` : 'T'+startTime+':00') : `T00:00`)
-    const e = plustEnd.toISOString().slice(0,10) + (btn === "hour" ? (endTime < 10 ? `T0${endTime}:00` : 'T'+endTime+':00') : `T00:00`)
+    const startTime = btn === "hour" ? new Date(plusStartTime).getHours() : new Date(plusStartDate).getHours()
+    const endTime = btn === "hour" ? new Date(plusEndTime).getHours() : new Date(plusEndDate).getHours()
+    
+    const startDate = btn === "hour" ? new Date(plusStartTime).getDate() : new Date(plusStartDate).getDate()
+    const endDate = btn === "hour" ? new Date(plusEndTime).getDate() : new Date(plusEndDate).getDate()
 
-    // const monthObj = new Date(endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate())
+    const startMonth = btn === "hour" ?  new Date(plusStartTime).getMonth() + 1 : btn === "month" ? new Date(currentMonth).getMonth() + 1 :  new Date(plusStartDate).getMonth() + 1
+    const endMonth = btn === "hour" ? new Date(plusEndTime).getMonth() + 1 : btn === "month" ? new Date(currentMonth).getMonth() + 1 : new Date(plusEndDate).getMonth() + 1
+
+    const startYear = btn === "hour" ? new Date(plusStartTime).getFullYear() : btn === "month" ? new Date(currentMonth).getFullYear() : new Date(plusStartDate).getFullYear()
+    const endYear = btn === "hour" ? new Date(plusEndTime).getFullYear() : btn === "month" ? new Date(currentMonth).getFullYear() : new Date(plusEndDate).getFullYear()
+    
+
+    const s = `${startYear}-${startMonth < 10 ? `0${startMonth}` : startMonth}-${btn === "month" ? '01' : startDate < 10 ? `0${startDate}` : startDate}T${btn === "hour" ? (startTime < 10 ? `0${startTime}` : startTime) : `00`}:00`
+    const e = `${endYear}-${endMonth < 10 ? `0${endMonth}` : endMonth}-${btn === "month" ? lastDay : endDate < 10 ? `0${endDate}` : endDate}T${btn === "hour" ? (endTime < 10 ? `0${endTime}` : endTime) : `00`}:00`
 
     setInputRange({s: s, e: e})
-    console.log(s, endTime)
+    console.log(s, e)
 }
 
 //두 인풋에 동일하게 빼는 버튼
 export const handleMinus = (setInputRange, inputRange, btn) => {
-    const startDate = btn === "hour" ? new Date(inputRange.s) : new Date(inputRange.s.slice(0, 10))
-    const endDate = btn === "hour" ? new Date(inputRange.e) : new Date(inputRange.e.slice(0, 10))
+    const start = new Date(inputRange.s)
+    const end = new Date(inputRange.e)
 
-    const range = btn === "date" ? day : btn === "week" ? week : null
+    //말일 구하기
+    const currentMonth = new Date(inputRange.s)
+    const preMonth = new Date(currentMonth)
+    preMonth.setMonth(currentMonth.getMonth() - 1)
+    const lastDay = new Date(currentMonth.getTime() - day).getDate()
 
-    const startTime = new Date(startDate.getTime() - hour).getHours()
-    const endTime = new Date(endDate.getTime() - hour).getHours()
+    const minusStartTime = new Date(start.getTime() - (btn ==="hour" ? hour : null))
+    const minusEndTime = new Date(end.getTime() - (btn ==="hour" ? hour : null))
 
-    const minusStart = new Date(startDate.getTime() - range)
-    const minusEnd = new Date(endDate.getTime() - range)
+    const minusStartDate = new Date(start.getTime() - (btn ==="date" ? day : btn === "week" ? week : null))
+    const minusEndDate = new Date(end.getTime() - (btn ==="date" ? day : btn === "week" ? week : null))
 
-    const s = minusStart.toISOString().slice(0,10) + (btn === "hour" ? (startTime < 10 ? `T0${startTime}:00` : 'T'+startTime+':00') : `T00:00`)
-    const e = minusEnd.toISOString().slice(0,10) + (btn === "hour" ? (endTime < 10 ? `T0${endTime}:00` : 'T'+endTime+':00') : `T00:00`)
+    const startTime = btn === "hour" ? new Date(minusStartTime).getHours() : new Date(minusStartDate).getHours()
+    const endTime = btn === "hour" ? new Date(minusEndTime).getHours() : new Date(minusEndDate).getHours()
+    
+    const startDate = btn === "hour" ? new Date(minusStartTime).getDate() : new Date(minusStartDate).getDate()
+    const endDate = btn === "hour" ? new Date(minusEndTime).getDate() : new Date(minusEndDate).getDate()
+
+    const startMonth = btn === "hour" ?  new Date(minusStartTime).getMonth() + 1 : btn === "month" ? new Date(preMonth).getMonth() + 1 :  new Date(minusStartDate).getMonth() + 1
+    const endMonth = btn === "hour" ? new Date(minusEndTime).getMonth() + 1 : btn === "month" ? new Date(preMonth).getMonth() + 1 : new Date(minusEndDate).getMonth() + 1
+
+    const startYear = btn === "hour" ? new Date(minusStartTime).getFullYear() : btn === "month" ? new Date(preMonth).getFullYear() : new Date(minusStartDate).getFullYear()
+    const endYear = btn === "hour" ? new Date(minusEndTime).getFullYear() : btn === "month" ? new Date(preMonth).getFullYear() : new Date(minusEndDate).getFullYear()
+    
+    const s = `${startYear}-${startMonth < 10 ? `0${startMonth}` : startMonth}-${btn === "month" ? '01' : startDate < 10 ? `0${startDate}` : startDate}T${btn === "hour" ? (startTime < 10 ? `0${startTime}` : startTime) : `00`}:00`
+    const e = `${endYear}-${endMonth < 10 ? `0${endMonth}` : endMonth}-${btn === "month" ? lastDay : endDate < 10 ? `0${endDate}` : endDate}T${btn === "hour" ? (endTime < 10 ? `0${endTime}` : endTime) : `00`}:00`
 
     setInputRange({s: s, e: e})
+    console.log(s, e)
 }

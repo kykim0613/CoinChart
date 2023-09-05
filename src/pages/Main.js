@@ -63,25 +63,44 @@ const Main = () => {
         // 일주일
         const week = day * 7
 
+        //날짜 객체로 바꾸기 위해 포맷 맞추기
         const stringValue = `${value}`
+        const format = `${stringValue.slice(0, 4)}-${stringValue.slice(4, 6)}-${stringValue.slice(6, 8)}T${state === "hour" ? stringValue.slice(8, 10) : '00'}:00`
+        
+        //한달치 시간을 밀리세컨드로 구하는 식
+        const currentMonth = new Date(format)
+        const nextMonth = new Date(currentMonth)
+        nextMonth.setMonth(currentMonth.getMonth()+1)
 
-        const end = `${stringValue.slice(0, 4)}-${stringValue.slice(4, 6)}-${stringValue.slice(6, 8)}T${state === "hour" ? stringValue.slice(8, 10) : '00'}:00`
-        const date = new Date(end)
+        const month = nextMonth - currentMonth
+
+        //"주" 버튼으로 볼 때 무조건 월요일이 되게 분기처리
+        const count = new Date(format).getDay() === 0 ? -1 : new Date(format).getDay() - 1
+        const end = 
+        state === "week" ? new Date(new Date(format).getTime() - (day * count)) : new Date(format)
 
         const start =
-        state === "hour" ? new Date(date.getTime() - hour) :
-        state === "date" ? new Date(date.getTime() - day) :
-        state === "week" ? new Date(date.getTime() - week) :
+        state === "hour" ? new Date(end.getTime() - hour) :
+        state === "date" ? new Date(end.getTime() - day) :
+        state === "week" ? new Date(end.getTime() - week) :
+        state === "month" ? new Date(end.getTime()) :
         alert("에러 발생")
 
-        const startYear = start.getFullYear()
-        const startMonth = new Date(start).getMonth() + 1
-        const startDay = new Date(start).getDate()
+
         const startTime = new Date(start).getHours()
+        const startDay = new Date(start).getDate()
+        const startMonth = new Date(start).getMonth() + 1
+        const startYear = new Date(start).getFullYear()
 
-        const startInput = `${startYear}-${startMonth < 10 ? '0' + startMonth : startMonth}-${startDay < 10 ? '0' + startDay : startDay}T${state === "hour" ? `${startTime < 10 ? `0${startTime}` : startTime}:00` : `00:00`}`
+        const endTime = new Date(end).getHours()
+        const endDay = new Date(end).getDate()
+        const endMonth = new Date(end).getMonth() + 1
+        const endYear = new Date(end).getFullYear()
 
-        setInputRange({s: startInput, e: end})
+        const s = `${startYear}-${startMonth < 10 ? '0' + startMonth : startMonth}-${state === "month" ? '01' : startDay < 10 ? '0' + startDay : startDay}T${state === "hour" ? `${startTime < 10 ? `0${startTime}` : startTime}:00` : `00:00`}`
+        const e = `${endYear}-${endMonth < 10 ? '0' + endMonth : endMonth}-${endDay < 10 ? '0' + endDay : endDay}T${state === "hour" ? `${endTime < 10 ? `0${endTime}` : endTime}:00` : `00:00`}`
+
+        setInputRange({s: s, e: e})
     }
 
     // 코인 리스트에서 코인 선택
@@ -124,12 +143,12 @@ const Main = () => {
     // start Date를 input 눌러 선택할 때
     const handlestartDate = (e) => {
         const value = e.target.value
-        handleDateStart(value, setInputRange, end, inputRange.e)
+        handleDateStart(value, setInputRange, end, inputRange)
     }
     // end Date를 input 눌러 선택할 때
     const hanldeEndDate = (e) => {
         const value = e.target.value
-        handleDateEnd(value, setInputRange, start, inputRange.s)
+        handleDateEnd(value, setInputRange, start, inputRange)
     }
 
 

@@ -62,8 +62,8 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
 
     const dataOrganization = (coin) => {
         const timeCheck = new Date()
-            const dataArray1 = groupedArray(coin.b)
-            const dataArray2 = groupedArray(coin.u)
+            const dataArray2 = groupedArray(coin.u, xAxis)
+            const dataArray1 = groupedArray(coin.b, xAxis)
 
             //세 가지 값 리턴
             transArray(dataArray1, dataArray2, change, setArray)
@@ -93,9 +93,8 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         return m1;
     }
 
-    // data를 merge할 때 x축 기준으로 순서대로 푸시하는데 60분에 좌표가 45개라서 문제가 발생. (06분~50분)
-    // 따라서 분과 시의 경우에는 if else로 나눠 따로 처리해줌
-    const groupedArray = (dataList) => {
+    // 그룹화 함수
+    const groupedArray = (dataList, xAxis) => {
         const runTime = new Date();
         const result = []
         try {
@@ -104,102 +103,44 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
                 return []
             }
 
+            let xAxisIdx = 0;
             const len = dataList.length
-            let p = Object.assign({}, dataList[0]) // 얕은 복사
-            p.t = xAxis[0]
-            p.groupedCount = 1;
-            let xAxisIdx = 1;
+            const xAxisLength = xAxis.length
 
-            // dataList roof 돌면서 시간 확인하여 merge 작업.
-            if (btn === "hour") {
-                for (let i = 1; i < len; i++) {
-                    const time = dataList[i].t
-                    if (time < xAxis[xAxisIdx]) {
-                        p = merge(p, dataList[i])
-                    } else {
-                        result.push(p)
-                        p = Object.assign({}, dataList[i]) // 얕은 복사
-                        p.t = xAxis[xAxisIdx]
-                        p.groupedCount = 1;
-                        xAxisIdx++
-                    }
+            for (let i = 0; i < len; i++) {
+                if (xAxisIdx + 1 >= xAxisLength) {
+                    break;
                 }
-            } else {
-                for (let i = 1; i < len; i++) {
-                    const time = dataList[i].t
-                    if (time < xAxis[xAxisIdx]) {
-                        p = merge(p, dataList[i])
+                const time = dataList[i].t
+                if (xAxis[xAxisIdx] <= time && time < xAxis[xAxisIdx + 1]) {
+                    if (result[xAxisIdx]) {
+                        merge(result[xAxisIdx], dataList[i])
                     } else {
-                        result.push(p)
-                        p = Object.assign({}, dataList[i]) // 얕은 복사
-                        p.t = xAxis[xAxisIdx]
-                        p.groupedCount = 1;
-                        xAxisIdx++
+                        result[xAxisIdx] = Object.assign({}, dataList[i])
+                        result[xAxisIdx].t = xAxis[xAxisIdx];
+                        result[xAxisIdx].groupedCount = 1;
                     }
+                } else {
+                    xAxisIdx++
+                    i--;
                 }
             }
-            // 마지막 값 result 에 push
-            result.push(p)
 
             // volume 값 평균 계산
+            const t = [];
             for (let i = 0; i < result.length; i++) {
+                if (!result[i]) {
+                    continue;
+                }
                 result[i].tv /= result[i].groupedCount;
                 result[i].tp /= result[i].groupedCount;
+                t.push(result[i]);
             }
-            return result
+            return t
         } finally {
             console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
         }
     }
-
-    //수정된 그룹화함수
-    // const groupedArray = (dataList) => {
-    //     const runTime = new Date();
-    //     const result = []
-    //     try {
-    //         if (!dataList || dataList.length <= 0) {
-    //             // dataList 빈껍질이면 빈 배열 return
-    //             return []
-    //         }
-
-    //         let xAxisIdx = 0;
-    //         const len = dataList.length
-    //         const xAxisLength = xAxis.length
-
-    //         for (let i = 0; i < len; i++) {
-    //             if (xAxisIdx + 1 >= xAxisLength) {
-    //                 break;
-    //             }
-    //             const time = dataList[i].t
-    //             if (xAxis[xAxisIdx] <= time && time < xAxis[xAxisIdx + 1]) {
-    //                 if (result[xAxisIdx]) {
-    //                     merge(result[xAxisIdx], dataList[i])
-    //                 } else {
-    //                     result[xAxisIdx] = Object.assign({}, dataList[i])
-    //                     result[xAxisIdx].t = xAxis[xAxisIdx];
-    //                     result[xAxisIdx].groupedCount = 1;
-    //                 }
-    //             } else {
-    //                 xAxisIdx++
-    //                 i--;
-    //             }
-    //         }
-
-    //         // volume 값 평균 계산
-    //         const t = [];
-    //         for (let i = 0; i < result.length; i++) {
-    //             if (!result[i]) {
-    //                 continue;
-    //             }
-    //             result[i].tv /= result[i].groupedCount;
-    //             result[i].tp /= result[i].groupedCount;
-    //             t.push(result[i]);
-    //         }
-    //         return t
-    //     } finally {
-    //         console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
-    //     }
-    // }
 
     const toFixedArray = (array) => {
         return array.map((fix) => fix.toFixed(0))

@@ -186,14 +186,9 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         ],
     }
 
-    const binancePriceLength = array.b.price.length
-    const upbitPriceLength = array.u.price.length
-
     const LineOptions = {
         scales: {
             y: {
-                min: ((array.b.price[binancePriceLength] + array.u.price[upbitPriceLength]) / 2) * 0.7,
-                max: ((array.b.price[binancePriceLength] + array.u.price[upbitPriceLength]) / 2) * 1.3,
                 display: false,
                 position: 'left',
                 grid: {
@@ -261,7 +256,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
     }
 
     const handleChangeBtn = (coin, setArray) => {
-        transArray(groupedArray(coin.b), groupedArray(coin.u), change, setArray)
+        transArray(groupedArray(coin.b, xAxis), groupedArray(coin.u, xAxis), change, setArray)
         setChange(!change)
     }
 

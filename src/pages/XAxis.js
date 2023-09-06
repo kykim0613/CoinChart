@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react"
 import styled from "styled-components"
 import LineChart from "./LineChart";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { loading, selectedValue } from "../atom";
+import { useRecoilValue } from "recoil";
+import { selectedValue } from "../atom";
 
 const VolumeContainer = styled.div`
   width: 100vh;
@@ -13,18 +13,12 @@ const VolumeContainer = styled.div`
 
 const XAxis = ({ selected, start, end, btn }) => {
     const [xAxis, setXAxis] = useState([])
-    const [rerendering, setRerendering] = useState([])
     const value = useRecoilValue(selectedValue)
 
     // yyyymmddhhmmss 형태로 만듬.
-
     useEffect(() => {
         createXAxis(start, end);
-    }, [selected, start, end])
-
-    useEffect(() => {
-        rerenderingXAxis(start, end)
-    }, [value])
+    }, [selected, start, end, value])
 
     function createXAxis(start, end) {
         const runTime = new Date();
@@ -64,42 +58,7 @@ const XAxis = ({ selected, start, end, btn }) => {
 
         xAxisSet.add(end); // 끝점 추가
         setXAxis(Array.from(xAxisSet));
-        setRerendering(Array.from(xAxisSet))
         console.log(`create xAxis Time:${new Date() - runTime}, Size:${xAxisSet.size}`)
-    }
-
-    //createXAxis를 이용해 x축만 바꿔주는 함수
-    function rerenderingXAxis(start, end) {
-        const runTime = new Date();
-
-        const st = parseNumberTime(start);
-        const et = parseNumberTime(end);
-
-        const startDate = new Date(st.year, st.month - 1, st.day, st.hour, st.min);
-        const endDate = new Date(et.year, et.month - 1, et.day, et.hour, et.min);
-
-        const totalMinute = (endDate - startDate) / (60 * 1000);
-
-        const interval = Math.max(totalMinute / (value - 1), 1);
-
-        const xAxisSet = new Set();
-        xAxisSet.add(start);
-
-        let tempMinute = 0;
-        let tempDate = startDate;
-        while (tempDate < endDate) {
-            tempDate = new Date(startDate.getTime());
-            tempDate.setMinutes(startDate.getMinutes() + Math.ceil(tempMinute += interval));
-
-            const tempNumberDate = dateToNumberDate(tempDate);
-            if (tempNumberDate < end) {
-                xAxisSet.add(tempNumberDate);
-            }
-        }
-
-        xAxisSet.add(end);
-        setRerendering(Array.from(xAxisSet))
-        console.log(`rerendering xAxis Time:${new Date() - runTime}, Size:${xAxisSet.size}`)
     }
 
     const parseNumberTime = (numberTime) => {
@@ -127,7 +86,6 @@ const XAxis = ({ selected, start, end, btn }) => {
                     end={end}
                     selected={selected}
                     xAxis={xAxis}
-                    rerendering={rerendering}
                     btn = {btn}
                 />
             </VolumeContainer>

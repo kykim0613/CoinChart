@@ -41,8 +41,39 @@ export const Controller = styled.button`
     font-size: 16px;
 `
 
+export const ChangeBtn = styled.button`
+    width: 130px;
+    height: 40px;
+    border: none;
+    border-radius: 30px;
+    color: ${(props) => props.active ? "#333" : "#fff"};
+    background-color: ${(props) => props.active ? "#eee" : "#333"};
+    cursor: pointer;
+    :hover {
+        background-color: ${(props) => props.active ? "#ccc" : "#555"};
+    }
+`
+
+export const SliderBar = styled.input`
+    width: 200px;
+    height: 10px;
+    appearance: none;
+    border-radius: 5px;
+    background: ${(props) => props.active ? "#ccc" : "#555"};
+    cursor: pointer;
+    &::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px; /* 버튼 크기 조정 */
+        height: 20px; /* 버튼 크기 조정 */
+        background: ${(props) => props.active ? "#eee" : "#333"};
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+      }
+`
+
 export const loading = atom({
-    key: "loader",
+    key: "load",
     default: false
 })
 

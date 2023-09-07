@@ -23,16 +23,18 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         }
     }))
     const [change, setChange] = useState(true)
-
+    const [operationApi, setOperationApi] = useState(false)
     const [loader, setLoader] = useRecoilState(loading)
     const [value, setValue] = useRecoilState(selectedValue)
     const mode = useRecoilValue(blackMode)
-    console.log(loader)
 
     Chart.defaults.color = `${mode ? "#ddd" : "#333"}`
 
     //api 호출
     useEffect(() => {
+        if (operationApi) {
+            return
+        }
         setLoader(true)
         fetchData(selected, start, end)
     }, [selected, start, end])
@@ -43,6 +45,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
     }, [coin, xAxis, change])
 
     const fetchData = async (selected, start, end) => {
+        setOperationApi(true)
         try {
             const [data1, data2] = await Promise.all([
                 binanceCandlesAPI(selected, start, end),
@@ -57,9 +60,11 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         } catch (error) {
             console.log(error)
             alert("서버 연결 오류")
+        } finally {
+            setOperationApi(false)
         }
     }
-
+    console.log(operationApi)
     const dataOrganization = (coin) => {
         const timeCheck = new Date()
             const dataArray2 = groupedArray(coin.u, xAxis)

@@ -100,7 +100,10 @@ export const handlePlus = (setInputRange, inputRange, btn) => {
     currentMonth.setMonth(currentMonth.getMonth() + 1)
     const nextMonth = new Date(currentMonth)
     nextMonth.setMonth(currentMonth.getMonth() + 1)
-    const lastDay = new Date(nextMonth.getTime() - day).getDate()
+    const year = nextMonth.getFullYear()
+    const month = nextMonth.getMonth() + 1
+    const lastDayFormat = `${year}-${month < 10 ? `0${month}` : month}-01T00:00`
+    const lastDay = new Date(new Date(lastDayFormat).getTime() - day).getDate()
 
     const plusStartTime = new Date(start.getTime() + (btn === "hour" ? hour : null))
     const plusEndTime = new Date(end.getTime() + (btn === "hour" ? hour : null))
@@ -136,7 +139,10 @@ export const handleMinus = (setInputRange, inputRange, btn) => {
     const currentMonth = new Date(inputRange.s)
     const preMonth = new Date(currentMonth)
     preMonth.setMonth(currentMonth.getMonth() - 1)
-    const lastDay = new Date(currentMonth.getTime() - day).getDate()
+    const year = preMonth.getFullYear()
+    const month = currentMonth.getMonth() + 1
+    const lastDayFormat = `${year}-${month < 10 ? `0${month}` : month}-01T00:00`
+    const lastDay = new Date(new Date(lastDayFormat).getTime() - day).getDate()
 
     const minusStartTime = new Date(start.getTime() - (btn ==="hour" ? hour : null))
     const minusEndTime = new Date(end.getTime() - (btn ==="hour" ? hour : null))

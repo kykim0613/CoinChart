@@ -72,8 +72,6 @@ const Main = () => {
         const nextMonth = new Date(currentMonth)
         nextMonth.setMonth(currentMonth.getMonth()+1)
 
-        const month = nextMonth - currentMonth
-
         //"주" 버튼으로 볼 때 무조건 월요일이 되게 분기처리
         const count = new Date(format).getDay() === 0 ? -1 : new Date(format).getDay() - 1
         const end = 

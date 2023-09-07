@@ -82,7 +82,7 @@ export const transArray = (dataArray1, dataArray2, change, setArray) => {
         })
 
     } else {
-        const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
+        const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1000);
         const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
 
         setArray({

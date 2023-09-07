@@ -6,6 +6,7 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 import { useRecoilState, useRecoilValue } from "recoil";
 import { ChangeBtn, Loader, SliderBar, blackMode, loading, selectedValue } from "../atom";
 import { binanceXAxis, transArray, upbitXAxis } from "../handleChartFunc";
+import { debounce } from "lodash";
 Chart.register(zoomPlugin)
 
 const LineChart = ({ start, end, selected, xAxis, btn }) => {
@@ -23,20 +24,16 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         }
     }))
     const [change, setChange] = useState(true)
-    const [operationApi, setOperationApi] = useState(false)
     const [loader, setLoader] = useRecoilState(loading)
     const [value, setValue] = useRecoilState(selectedValue)
     const mode = useRecoilValue(blackMode)
-
     Chart.defaults.color = `${mode ? "#ddd" : "#333"}`
+
 
     //api 호출
     useEffect(() => {
-        if (operationApi) {
-            return
-        }
         setLoader(true)
-        fetchData(selected, start, end)
+        debouncedFetch(selected, start, end)
     }, [selected, start, end])
 
     //호출된 api가 저장됐을 때 실행 or x축만 변경되었을 때 실행
@@ -45,7 +42,6 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
     }, [coin, xAxis, change])
 
     const fetchData = async (selected, start, end) => {
-        setOperationApi(true)
         try {
             const [data1, data2] = await Promise.all([
                 binanceCandlesAPI(selected, start, end),
@@ -60,11 +56,11 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         } catch (error) {
             console.log(error)
             alert("서버 연결 오류")
-        } finally {
-            setOperationApi(false)
         }
     }
-    console.log(operationApi)
+
+    const debouncedFetch = debounce(fetchData, 300)
+
     const dataOrganization = (coin) => {
         const timeCheck = new Date()
             const dataArray2 = groupedArray(coin.u, xAxis)
@@ -141,6 +137,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
                 result[i].tp /= result[i].groupedCount;
                 t.push(result[i]);
             }
+            console.log(t)
             return t
         } finally {
             console.log(`GroupedArray | originLen: ${dataList.length} -> resultLen:${result.length}, Time:${new Date() - runTime}`)
@@ -150,7 +147,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
     const toFixedArray = (array) => {
         return array.map((fix) => fix.toFixed(0))
     }
-
+    console.log(array.b.price)
     const lineChart = {
         labels: xAxis,
         datasets: [
@@ -219,8 +216,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         },
         responsiveAnimationDuration: 0,
         interaction: {
-            intersect: false,
-            mode: 'index'
+            mode: 'x',
         },
         plugins: {
             zoom: {

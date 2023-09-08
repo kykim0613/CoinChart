@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useCallback, useEffect, useState } from "react"
 import { Line } from "react-chartjs-2"
 import { binanceCandlesAPI, upbitCandlesAPI } from "../api"
 import { Chart } from 'chart.js';
@@ -58,7 +58,7 @@ const LineChart = ({ start, end, selected, xAxis }) => {
         }
     }
 
-    const debouncedFetch = debounce(fetchData, 1000)
+    const debouncedFetch = useCallback(debounce(fetchData, 1000), [])
 
     const organizedData = (coin) => {
         const timeCheck = new Date()

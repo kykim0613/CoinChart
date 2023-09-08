@@ -1,26 +1,15 @@
 //binance 좌표 생성 함수
-export const binanceXAxis = (x, y) => {
+export const makeXAxis = (x, y) => {
     let result = []
-    const binanceLength = x.length
+    const xLength = x.length
 
-    for (let i = 0; i < binanceLength; i++) {
+    for (let i = 0; i < xLength; i++) {
         result.push({ x: x[i], y: y[i] })
     }
 
     return result
 }
 
-//upbit 좌표 생성 함수
-export const upbitXAxis = (x, y) => {
-    let result = []
-    const upbitLength = x.length
-
-    for (let i = 0; i < upbitLength; i++) {
-        result.push({ x: x[i], y: y[i] })
-    }
-
-    return result
-}
 
 /**
      *

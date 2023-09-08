@@ -5,11 +5,11 @@ import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { useRecoilState, useRecoilValue } from "recoil";
 import { ChangeBtn, Loader, SliderBar, blackMode, loading, selectedValue } from "../atom";
-import { binanceXAxis, transArray, upbitXAxis } from "../handleChartFunc";
+import { transArray, makeXAxis } from "../handleChartFunc";
 import { debounce } from "lodash";
 Chart.register(zoomPlugin)
 
-const LineChart = ({ start, end, selected, xAxis, btn }) => {
+const LineChart = ({ start, end, selected, xAxis }) => {
     const [coin, setCoin] = useState({b: [], u: []})
     const [array, setArray] = useState(({
         b: {
@@ -29,7 +29,6 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
     const mode = useRecoilValue(blackMode)
     Chart.defaults.color = `${mode ? "#ddd" : "#333"}`
 
-
     //api 호출
     useEffect(() => {
         setLoader(true)
@@ -38,7 +37,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
 
     //호출된 api가 저장됐을 때 실행 or x축만 변경되었을 때 실행
     useEffect(() => {
-        dataOrganization(coin)
+        organizedData(coin)
     }, [coin, xAxis, change])
 
     const fetchData = async (selected, start, end) => {
@@ -59,9 +58,9 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         }
     }
 
-    const debouncedFetch = debounce(fetchData, 300)
+    const debouncedFetch = debounce(fetchData, 1000)
 
-    const dataOrganization = (coin) => {
+    const organizedData = (coin) => {
         const timeCheck = new Date()
             const dataArray2 = groupedArray(coin.u, xAxis)
             const dataArray1 = groupedArray(coin.b, xAxis)
@@ -147,13 +146,13 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
     const toFixedArray = (array) => {
         return array.map((fix) => fix.toFixed(0))
     }
-    console.log(array.b.price)
+
     const lineChart = {
         labels: xAxis,
         datasets: [
             {
                 label: `Upbit`,
-                data: upbitXAxis(array.u.axis, array.u.price),
+                data: makeXAxis(array.u.axis, array.u.price),
                 fill: false,
                 borderColor: '#005ca7',
                 backgroundColor: '#005ca7',
@@ -162,7 +161,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
             },
             {
                 label: `Binance`,
-                data: binanceXAxis(array.b.axis, array.b.price),
+                data: makeXAxis(array.b.axis, array.b.price),
                 fill: false,
                 borderColor: '#fcd905',
                 backgroundColor: '#fcd905',
@@ -171,7 +170,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
             },
             {
                 label: `Binance Volume`,
-                data: binanceXAxis(array.b.axis, toFixedArray(array.b.volume)),
+                data: makeXAxis(array.b.axis, toFixedArray(array.b.volume)),
                 fill: false,
                 backgroundColor: 'rgba(252, 217, 5, 0.5)',
                 tension: 0.1,
@@ -179,7 +178,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
             },
             {
                 label: `Upbit Volume`,
-                data: upbitXAxis(array.u.axis, toFixedArray(array.u.volume)),
+                data: makeXAxis(array.u.axis, toFixedArray(array.u.volume)),
                 fill: false,
                 backgroundColor: 'rgba(0, 92, 167, 0.5)',
                 tension: 0.1,
@@ -216,6 +215,7 @@ const LineChart = ({ start, end, selected, xAxis, btn }) => {
         },
         responsiveAnimationDuration: 0,
         interaction: {
+            intersect: false,
             mode: 'x',
         },
         plugins: {

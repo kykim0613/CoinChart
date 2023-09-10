@@ -1,4 +1,4 @@
-import styled, { createGlobalStyle } from "styled-components";
+import { createGlobalStyle } from "styled-components";
 import { blackMode } from "./atom";
 import { useRecoilValue } from "recoil";
 

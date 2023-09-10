@@ -1,16 +1,3 @@
-//binance 좌표 생성 함수
-export const makeXAxis = (x, y) => {
-    let result = []
-    const xLength = x.length
-
-    for (let i = 0; i < xLength; i++) {
-        result.push({ x: x[i], y: y[i] })
-    }
-
-    return result
-}
-
-
 /**
      *
      * @param data 데이터 Array
@@ -18,7 +5,7 @@ export const makeXAxis = (x, y) => {
      * @param exchangeRate 환율 적용할 금액. ex) 한화=1, 달러=1300 등
      * @returns {[*[가격List],*[거래량List],*[x축]]}
      */
-const sepLists = (data, isRate, exchangeRate) => {
+export const sepLists = (data, isRate, exchangeRate) => {
     const timeCheck = new Date()
     const priceList = [] // 가격 데이터
     const volumeList = [] // 거래량 데이터
@@ -49,44 +36,4 @@ const sepLists = (data, isRate, exchangeRate) => {
     }
     console.log(`sep runTime: ${new Date() - timeCheck}`)
     return [priceList, volumeList, axisList];
-}
-
-export const transArray = (dataArray1, dataArray2, change, setArray) => {
-    const timeCheck = new Date()
-    if (change) {
-        const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, true, null)
-        const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, true, null);
-
-        setArray({
-            b: {
-                price: binancePrice,
-                volume: binanceVolume,
-                axis: binanceAxis
-            },
-            u: {
-                price: upbitPrice,
-                volume: upbitVolume,
-                axis: upbitAxis
-            }
-        })
-
-    } else {
-        const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1000);
-        const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
-
-        setArray({
-            b: {
-                price: binancePrice,
-                volume: binanceVolume,
-                axis: binanceAxis
-            },
-            u: {
-                price: upbitPrice,
-                volume: upbitVolume,
-                axis: upbitAxis
-            }
-        })
-
-    }
-    console.log(`trans runTime: ${new Date() - timeCheck}`)
 }

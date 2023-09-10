@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { Line } from "react-chartjs-2"
-import { binanceCandlesAPI, upbitCandlesAPI } from "../api"
 import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { useRecoilState, useRecoilValue } from "recoil";
-import { ChangeBtn, Loader, SliderBar, blackMode, loading, selectedValue } from "../atom";
-import { transArray, makeXAxis } from "../handleChartFunc";
 import { debounce } from "lodash";
+import { transArray } from "./transArray/transArray";
+import { makeXAxis } from "./makeXAxis/makeXAxis";
+import { ChangeBtn, Loader, SliderBar, blackMode, loading, selectedValue } from "../../atom";
+import { binanceCandlesAPI, upbitCandlesAPI } from "../../api";
 Chart.register(zoomPlugin)
 
 const LineChart = ({ start, end, selected, xAxis }) => {

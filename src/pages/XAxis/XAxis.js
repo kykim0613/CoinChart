@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react"
 import styled from "styled-components"
-import LineChart from "./LineChart";
 import { useRecoilValue } from "recoil";
-import { selectedValue } from "../atom";
+import { selectedValue } from "../../atom";
+import LineChart from "../LineChart/LineChart";
 
 const VolumeContainer = styled.div`
   width: 100vh;

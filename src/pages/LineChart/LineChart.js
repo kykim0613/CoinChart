@@ -4,10 +4,10 @@ import { Chart } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { useRecoilState, useRecoilValue } from "recoil";
 import { debounce } from "lodash";
-import { transArray } from "./transArray/transArray";
-import { makeXAxis } from "./makeXAxis/makeXAxis";
 import { ChangeBtn, Loader, SliderBar, blackMode, loading, selectedValue } from "../../atom";
 import { binanceCandlesAPI, upbitCandlesAPI } from "../../api";
+import transArray from "./func/transArray/transArray";
+import makeXAxis from "./func/makeXAxis/makeXAxis";
 Chart.register(zoomPlugin)
 
 const LineChart = ({ start, end, selected, xAxis }) => {

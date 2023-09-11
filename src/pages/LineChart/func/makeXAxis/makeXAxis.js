@@ -1,4 +1,4 @@
-export const makeXAxis = (x, y) => {
+const makeXAxis = (x, y) => {
     let result = []
     const xLength = x.length
 
@@ -8,3 +8,5 @@ export const makeXAxis = (x, y) => {
 
     return result
 }
+
+export default makeXAxis;

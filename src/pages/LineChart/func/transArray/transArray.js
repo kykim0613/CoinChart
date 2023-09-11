@@ -1,6 +1,6 @@
 import { sepLists } from "../sepLists/sepLists";
 
-export const transArray = (dataArray1, dataArray2, change, setArray) => {
+const transArray = (dataArray1, dataArray2, change, setArray) => {
     const timeCheck = new Date()
     if (change) {
         const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, true, null)
@@ -39,3 +39,5 @@ export const transArray = (dataArray1, dataArray2, change, setArray) => {
     }
     console.log(`trans runTime: ${new Date() - timeCheck}`)
 }
+
+export default transArray;

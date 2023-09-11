@@ -8,3 +8,5 @@ export const sortXAxis = (x, y) => {
 
     return result
 }
+
+export default sortXAxis;

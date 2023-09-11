@@ -1,4 +1,4 @@
-export const makeXAxis = (x, y) => {
+export const sortXAxis = (x, y) => {
     let result = []
     const xLength = x.length
 

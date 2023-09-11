@@ -1,12 +1,11 @@
-import { sepLists } from "../sepLists/sepLists";
+import { sepLists } from "./sepLists";
 
-export const transArray = (dataArray1, dataArray2, change, setArray) => {
-    const timeCheck = new Date()
+export const transArray = (dataArray1, dataArray2, change) => {
     if (change) {
         const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, true, null)
         const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, true, null);
 
-        setArray({
+        return {
             b: {
                 price: binancePrice,
                 volume: binanceVolume,
@@ -17,13 +16,13 @@ export const transArray = (dataArray1, dataArray2, change, setArray) => {
                 volume: upbitVolume,
                 axis: upbitAxis
             }
-        })
+        }
 
     } else {
-        const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1000);
+        const [binancePrice, binanceVolume, binanceAxis] = sepLists(dataArray1, false, 1300);
         const [upbitPrice, upbitVolume, upbitAxis] = sepLists(dataArray2, false, 1);
 
-        setArray({
+        return {
             b: {
                 price: binancePrice,
                 volume: binanceVolume,
@@ -34,8 +33,9 @@ export const transArray = (dataArray1, dataArray2, change, setArray) => {
                 volume: upbitVolume,
                 axis: upbitAxis
             }
-        })
+        }
 
     }
-    console.log(`trans runTime: ${new Date() - timeCheck}`)
 }
+
+export default transArray;

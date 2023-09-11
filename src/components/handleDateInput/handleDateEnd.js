@@ -1,7 +1,7 @@
-import { transFormat } from "../transFormat/transFormat"
+import transFormat from "./transFormat"
 
 // endInput을 눌러서 날짜가 변경되는걸 반영해주는 함수
-export const handleDateEnd = (value, setInputRange, start, inputRange) => {
+const handleDateEnd = (value, start, inputRange) => {
 
     const now = new Date(inputRange.e)
     const next = new Date(now)
@@ -16,11 +16,13 @@ export const handleDateEnd = (value, setInputRange, start, inputRange) => {
 
     if(compare < month){
         if (start < transFormat(value)) {
-            setInputRange({s: inputRange.s, e: value})
+            return {s: inputRange.s, e: value}
         } else {
-            alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
+            return alert(`시작날짜는 종료날짜보다 클 수 없습니다.`)
         }
     } else {
-        alert(`한달 이내로만 선택이 가능합니다.`)
+        return alert(`한달 이내로만 선택이 가능합니다.`)
     }
 }
+
+export default handleDateEnd;

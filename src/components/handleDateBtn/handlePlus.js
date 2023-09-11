@@ -6,7 +6,7 @@ const day = 24 * 60 * 60 * 1000
 const week = day * 7
 
 //두 인풋에 동일하게 더하는 버튼
-export const handlePlus = (setInputRange, inputRange, btn) => {
+const handlePlus = (inputRange, btn) => {
     const start = new Date(inputRange.s)
     const end = new Date(inputRange.e)
 
@@ -42,5 +42,7 @@ export const handlePlus = (setInputRange, inputRange, btn) => {
     const s = `${startYear}-${startMonth < 10 ? `0${startMonth}` : startMonth}-${btn === "month" ? '01' : startDate < 10 ? `0${startDate}` : startDate}T${btn === "hour" ? (startTime < 10 ? `0${startTime}` : startTime) : `00`}:00`
     const e = `${endYear}-${endMonth < 10 ? `0${endMonth}` : endMonth}-${btn === "month" ? lastDay : endDate < 10 ? `0${endDate}` : endDate}T${btn === "hour" ? (endTime < 10 ? `0${endTime}` : endTime) : `00`}:00`
 
-    setInputRange({s: s, e: e})
+    return {s: s, e: e}
 }
+
+export default handlePlus;

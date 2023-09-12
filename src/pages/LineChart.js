@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Line } from "react-chartjs-2";
 import { Chart } from "chart.js";
 import zoomPlugin from "chartjs-plugin-zoom";
 import { useRecoilValue } from "recoil";
-import {
-  ChangeBtn,
-  blackMode,
-  selectedValue,
-} from "../atom";
+import { ChangeBtn, blackMode, selectedValue } from "../atom";
 import groupedArray from "../components/groupedCoin/groupedArray";
 import { sortXAxis } from "../components/axis/sortXAxis";
 import transArray from "../components/groupedCoin/transArray";
@@ -15,36 +11,14 @@ import Slider from "../components/Slider";
 Chart.register(zoomPlugin);
 
 const LineChart = ({ coin, xAxis }) => {
-  const [array, setArray] = useState({
-    b: {
-      price: [],
-      volume: [],
-      axis: [],
-    },
-    u: {
-      price: [],
-      volume: [],
-      axis: [],
-    },
-  });
   const [change, setChange] = useState(true);
   const value = useRecoilValue(selectedValue);
   const mode = useRecoilValue(blackMode);
   Chart.defaults.color = `${mode ? "#ddd" : "#333"}`;
 
-
-  //호출된 api가 저장됐을 때 실행 or x축만 변경되었을 때 실행
-  useEffect(() => {
-    organizedData(coin);
-  }, [coin, xAxis, change]);
-
-  const organizedData = (coin) => {
-    const dataArray2 = groupedArray(coin.u, xAxis);
-    const dataArray1 = groupedArray(coin.b, xAxis);
-
-    //세 가지 값 리턴
-    setArray(transArray(dataArray1, dataArray2, change));
-  };
+  const dataArray1 = groupedArray(coin.b, xAxis);
+  const dataArray2 = groupedArray(coin.u, xAxis);
+  const data = transArray(dataArray1, dataArray2, change);
 
   const toFixedArray = (array) => {
     return array.map((fix) => fix.toFixed(0));
@@ -55,7 +29,7 @@ const LineChart = ({ coin, xAxis }) => {
     datasets: [
       {
         label: `Upbit`,
-        data: sortXAxis(array.u.axis, array.u.price),
+        data: sortXAxis(data.u.axis, data.u.price),
         fill: false,
         borderColor: "#005ca7",
         backgroundColor: "#005ca7",
@@ -64,7 +38,7 @@ const LineChart = ({ coin, xAxis }) => {
       },
       {
         label: `Binance`,
-        data: sortXAxis(array.b.axis, array.b.price),
+        data: sortXAxis(data.b.axis, data.b.price),
         fill: false,
         borderColor: "#fcd905",
         backgroundColor: "#fcd905",
@@ -73,7 +47,7 @@ const LineChart = ({ coin, xAxis }) => {
       },
       {
         label: `Binance Volume`,
-        data: sortXAxis(array.b.axis, toFixedArray(array.b.volume)),
+        data: sortXAxis(data.b.axis, toFixedArray(data.b.volume)),
         fill: false,
         backgroundColor: "rgba(252, 217, 5, 0.5)",
         tension: 0.1,
@@ -81,7 +55,7 @@ const LineChart = ({ coin, xAxis }) => {
       },
       {
         label: `Upbit Volume`,
-        data: sortXAxis(array.u.axis, toFixedArray(array.u.volume)),
+        data: sortXAxis(data.u.axis, toFixedArray(data.u.volume)),
         fill: false,
         backgroundColor: "rgba(0, 92, 167, 0.5)",
         tension: 0.1,
@@ -165,14 +139,7 @@ const LineChart = ({ coin, xAxis }) => {
     },
   };
 
-  const handleChangeBtn = (coin) => {
-    setArray(
-      transArray(
-        groupedArray(coin.b, xAxis),
-        groupedArray(coin.u, xAxis),
-        change
-      )
-    );
+  const handleChangeBtn = () => {
     setChange(!change);
   };
 
